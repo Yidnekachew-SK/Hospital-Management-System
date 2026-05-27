@@ -53,7 +53,7 @@ CREATE TABLE Insurance (
 );
 
 CREATE TABLE Patients (
-  PatientID int,
+  PatientID int AUTO_INCREMENT,
   NationalID varchar(20) DEFAULT NULL,
   PatientName varchar(50) NOT NULL,
   DOB_DATE date NOT NULL,
@@ -214,7 +214,7 @@ CREATE TABLE Billing (
 );
 
 CREATE TABLE Payments (
-  PaymentID int,
+  PaymentID int AUTO_INCREMENT,
   BillID int NOT NULL,
   PaymentDate date NOT NULL,
   AmountPaid decimal(10,2) NOT NULL,
@@ -236,7 +236,7 @@ CREATE TABLE SalaryPayments (
   CONSTRAINT fk_salaryPay_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID)
 );
 
-CREATE TABLE ShiftScheduless (
+CREATE TABLE ShiftSchedules (
   ScheduleID int AUTO_INCREMENT,
   EmployeeID varchar(10) NOT NULL,
   ShiftDate date NOT NULL,
@@ -302,7 +302,8 @@ CREATE TABLE UserAccounts (
   PasswordHash varchar(200) NOT NULL,
   UserRole varchar(30) NOT NULL,
   PRIMARY KEY (UserID),
-  UNIQUE KEY Username (Username)
+  UNIQUE KEY Username (Username),
+  CONSTRAINT fk_user_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID)
 );
 
 CREATE TABLE logs (
@@ -327,10 +328,10 @@ CREATE TABLE ActivityLog (
   );
 
 ## creating roles and access control
-CREATE ROLE doctor;
-CREATE ROLE nurse;
-CREATE ROLE patient;
-CREATE ROLE admin;
+CREATE ROLE IF NOT EXISTS doctor;
+CREATE ROLE IF NOT EXISTS nurse;
+CREATE ROLE IF NOT EXISTS patient;
+CREATE ROLE IF NOT EXISTS admin;
 
 GRANT SELECT ON hospital_management.Patients TO doctor;
 GRANT SELECT, INSERT, UPDATE ON hospital_management.MedicalRecords TO doctor;
