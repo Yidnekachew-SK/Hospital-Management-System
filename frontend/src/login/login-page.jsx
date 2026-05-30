@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import LoginCard from "./LoginCard.jsx";
 import { LogOut, CheckCircle2, Shield, Clock, Terminal } from "lucide-react";
+import "./index.css";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -127,7 +128,7 @@ export default function App() {
       {/* Modern, clean footer */}
       <footer className="py-4 text-center border-t border-slate-100 text-[11px] text-slate-400 font-mono mt-auto relative z-10">
         <div>
-          Asynchronous Backend Verification Server Active • Port 3000
+          Welcome to our hospital.
         </div>
       </footer>
     </div>
