@@ -48,3 +48,35 @@ exports.getVisitors = async (req, res, next) => {
         next(error);
     }
 };
+
+// GET /visitors/patient/:PatientID
+exports.getVisitorsByPatient = async (req, res, next) => {
+    try {
+        const { PatientID } = req.params;
+
+        if (!PatientID) {
+            return sendError(res, 'PatientID is required', 400);
+        }
+
+        const visitors = await supportService.getVisitorsByPatient(PatientID);
+        sendSuccess(res, 'Visitors retrieved successfully', { count: visitors.length, visitors }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// GET /visitors/patient/:PatientID/count
+exports.countVisitorsByPatient = async (req, res, next) => {
+    try {
+        const { PatientID } = req.params;
+
+        if (!PatientID) {
+            return sendError(res, 'PatientID is required', 400);
+        }
+
+        const visitorCount = await supportService.countVisitorsByPatient(PatientID);
+        sendSuccess(res, 'Visitor count retrieved successfully', { PatientID, VisitorCount: visitorCount }, 200);
+    } catch (error) {
+        next(error);
+    }
+};

@@ -48,3 +48,111 @@ exports.getAdmissions = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getAppointmentsByPatientID = async (req, res, next) => {
+    try {
+        const { PatientID } = req.params;
+
+        if (!PatientID) {
+            return sendError(res, 'PatientID is required', 400);
+        }
+
+        const appointments = await appointmentService.getAppointmentsByPatientID(PatientID);
+        sendSuccess(res, 'Appointments retrieved successfully', { count: appointments.length, appointments }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getAppointmentsByDoctorID = async (req, res, next) => {
+    try {
+        const { DoctorID } = req.params;
+
+        if (!DoctorID) {
+            return sendError(res, 'DoctorID is required', 400);
+        }
+
+        const appointments = await appointmentService.getAppointmentsByDoctorID(DoctorID);
+        sendSuccess(res, 'Appointments retrieved successfully', { count: appointments.length, appointments }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateAppointment = async (req, res, next) => {
+    try {
+        const { AppointmentID } = req.params;
+        const { AppointmentDate, AppointmentTime, AppointmentStatus } = req.body;
+
+        if (!AppointmentID || !AppointmentDate || !AppointmentTime) {
+            return sendError(res, 'AppointmentID, AppointmentDate, and AppointmentTime are required', 400);
+        }
+
+        const updated = await appointmentService.updateAppointment(AppointmentID, AppointmentDate, AppointmentTime, AppointmentStatus);
+        if (!updated) {
+            return sendError(res, 'Appointment not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Appointment updated successfully', { AppointmentID, AppointmentDate, AppointmentTime, AppointmentStatus }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteAppointment = async (req, res, next) => {
+    try {
+        const { AppointmentID } = req.params;
+
+        if (!AppointmentID) {
+            return sendError(res, 'AppointmentID is required', 400);
+        }
+
+        const deleted = await appointmentService.deleteAppointment(AppointmentID);
+        if (!deleted) {
+            return sendError(res, 'Appointment not found or deletion failed', 404);
+        }
+
+        sendSuccess(res, 'Appointment deleted successfully', { AppointmentID }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateAdmission = async (req, res, next) => {
+    try {
+        const { AdmissionID } = req.params;
+        const { DischargeDate, PrimaryDiagnosis } = req.body;
+
+        if (!AdmissionID) {
+            return sendError(res, 'AdmissionID is required', 400);
+        }
+
+        const updated = await appointmentService.updateAdmission(AdmissionID, DischargeDate, PrimaryDiagnosis);
+        if (!updated) {
+            return sendError(res, 'Admission not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Admission updated successfully', { AdmissionID, DischargeDate, PrimaryDiagnosis }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteAdmission = async (req, res, next) => {
+    try {
+        const { AdmissionID } = req.params;
+
+        if (!AdmissionID) {
+            return sendError(res, 'AdmissionID is required', 400);
+        }
+
+        const deleted = await appointmentService.deleteAdmission(AdmissionID);
+        if (!deleted) {
+            return sendError(res, 'Admission not found or deletion failed', 404);
+        }
+
+        sendSuccess(res, 'Admission deleted successfully', { AdmissionID }, 200);
+    } catch (error) {
+        next(error);
+    }
+};

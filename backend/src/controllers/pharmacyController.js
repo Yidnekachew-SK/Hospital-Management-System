@@ -49,6 +49,22 @@ exports.getPrescriptions = async (req, res, next) => {
     }
 };
 
+// GET /prescriptions/patient/:PatientID
+exports.getPrescriptionsByPatient = async (req, res, next) => {
+    try {
+        const { PatientID } = req.params;
+
+        if (!PatientID) {
+            return sendError(res, 'PatientID is required', 400);
+        }
+
+        const prescriptions = await pharmacyService.getPrescriptionsByPatient(PatientID);
+        sendSuccess(res, 'Prescriptions retrieved successfully', { count: prescriptions.length, prescriptions }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.createPrescriptionItem = async (req, res, next) => {
     try {
         const { PrescriptionID, MedicationID, Dosage, Duration, Frequency } = req.body;
@@ -74,6 +90,27 @@ exports.getPrescriptionItems = async (req, res, next) => {
     try {
         const prescriptionItems = await pharmacyService.getAllPrescriptionItems();
         sendSuccess(res, 'Prescription items retrieved successfully', { count: prescriptionItems.length, prescriptionItems }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// PUT /prescription-items/:ItemID
+exports.updatePrescriptionItem = async (req, res, next) => {
+    try {
+        const { ItemID } = req.params;
+        const { Dosage, Duration, Frequency } = req.body;
+
+        if (!ItemID || !Dosage || !Duration || !Frequency) {
+            return sendError(res, 'ItemID, Dosage, Duration, and Frequency are required', 400);
+        }
+
+        const updated = await pharmacyService.updatePrescriptionItem(ItemID, Dosage, Duration, Frequency);
+        if (!updated) {
+            return sendError(res, 'Prescription item not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Prescription item updated successfully', { ItemID, Dosage, Duration, Frequency }, 200);
     } catch (error) {
         next(error);
     }

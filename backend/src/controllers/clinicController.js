@@ -48,3 +48,97 @@ exports.getRooms = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getRoomOccupancyCount = async (req, res, next) => {
+    try {
+        const { RoomID } = req.params;
+
+        if (!RoomID) {
+            return sendError(res, 'RoomID is required', 400);
+        }
+
+        const occupancyCount = await clinicService.getRoomOccupancyCount(RoomID);
+        sendSuccess(res, 'Room occupancy retrieved successfully', { RoomID, OccupancyCount: occupancyCount }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateWard = async (req, res, next) => {
+    try {
+        const { WardID } = req.params;
+        const { WardName, DeptID, Capacity } = req.body;
+
+        if (!WardID || !WardName || !DeptID || !Capacity) {
+            return sendError(res, 'WardID, WardName, DeptID, and Capacity are required', 400);
+        }
+
+        const updated = await clinicService.updateWard(WardID, WardName, DeptID, Capacity);
+        if (!updated) {
+            return sendError(res, 'Ward not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Ward updated successfully', { WardID, WardName, DeptID, Capacity }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateRoom = async (req, res, next) => {
+    try {
+        const { RoomID } = req.params;
+        const { WardID, RoomNumber, RoomType, MaxCapacity } = req.body;
+
+        if (!RoomID || !WardID || !RoomNumber || !RoomType || !MaxCapacity) {
+            return sendError(res, 'RoomID, WardID, RoomNumber, RoomType, and MaxCapacity are required', 400);
+        }
+
+        const updated = await clinicService.updateRoom(RoomID, WardID, RoomNumber, RoomType, MaxCapacity);
+        if (!updated) {
+            return sendError(res, 'Room not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Room updated successfully', { RoomID, WardID, RoomNumber, RoomType, MaxCapacity }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getWardCounts = async (req, res, next) => {
+    try {
+        const counts = await clinicService.getWardCounts();
+        sendSuccess(res, 'Ward counts retrieved successfully', counts, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getWardsByDepartment = async (req, res, next) => {
+    try {
+        const { DeptID } = req.params;
+
+        if (!DeptID) {
+            return sendError(res, 'DeptID is required', 400);
+        }
+
+        const wards = await clinicService.getWardsByDepartment(DeptID);
+        sendSuccess(res, 'Wards retrieved successfully', { count: wards.length, wards }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getRoomCountByWard = async (req, res, next) => {
+    try {
+        const { WardID } = req.params;
+
+        if (!WardID) {
+            return sendError(res, 'WardID is required', 400);
+        }
+
+        const roomCount = await clinicService.getRoomCountByWard(WardID);
+        sendSuccess(res, 'Room count retrieved successfully', { WardID, RoomCount: roomCount }, 200);
+    } catch (error) {
+        next(error);
+    }
+};

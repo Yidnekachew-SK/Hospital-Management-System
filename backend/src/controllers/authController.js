@@ -104,3 +104,63 @@ exports.getSystemLogs = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updateUserAccount = async (req, res, next) => {
+    try {
+        const { UserID } = req.params;
+        const { Username, UserRole } = req.body;
+
+        if (!UserID || !Username || !UserRole) {
+            return sendError(res, 'UserID, Username, and UserRole are required', 400);
+        }
+
+        const updated = await authService.updateUserAccount(UserID, Username, UserRole);
+        if (!updated) {
+            return sendError(res, 'User account not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'User account updated successfully', { UserID, Username, UserRole }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getUserDetails = async (req, res, next) => {
+    try {
+        const { Username } = req.params;
+
+        if (!Username) {
+            return sendError(res, 'Username is required', 400);
+        }
+
+        const user = await authService.getUserByUsername(Username);
+        if (!user) {
+            return sendError(res, 'User not found', 404);
+        }
+
+        sendSuccess(res, 'User details retrieved successfully', user, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateUser = async (req, res, next) => {
+    try {
+        const { UserID } = req.params;
+        const { Username, UserRole } = req.body;
+
+        if (!UserID || !Username || !UserRole) {
+            return sendError(res, 'UserID, Username, and UserRole are required', 400);
+        }
+
+        const updated = await authService.updateUserAccount(UserID, Username, UserRole);
+        if (!updated) {
+            return sendError(res, 'User account not found or update failed', 404);
+        }
+
+        const updatedUser = await authService.getUserByUserID(UserID);
+        sendSuccess(res, 'User updated successfully', updatedUser, 200);
+    } catch (error) {
+        next(error);
+    }
+};
