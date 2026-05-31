@@ -47,3 +47,24 @@ exports.getAllSystemLogs = async () => {
     const [rows] = await db.execute("SELECT * FROM logs");
     return rows;
 };
+
+// 8. Logic to update a user account
+exports.updateUserAccount = async (userID, username, userRole) => {
+    const sql = "UPDATE UserAccounts SET Username = ?, UserRole = ? WHERE UserID = ?";
+    const [result] = await db.execute(sql, [username, userRole, userID]);
+    return result.affectedRows > 0;
+};
+
+// 9. Logic to get user by username (alias for findUserByUsername - returns full record with PasswordHash)
+exports.getUserByUsername = async (username) => {
+    const sql = "SELECT * FROM UserAccounts WHERE Username = ?";
+    const [rows] = await db.execute(sql, [username]);
+    return rows.length > 0 ? rows[0] : null;
+};
+
+// 10. Logic to get user by UserID
+exports.getUserByUserID = async (userID) => {
+    const sql = "SELECT * FROM UserAccounts WHERE UserID = ?";
+    const [rows] = await db.execute(sql, [userID]);
+    return rows.length > 0 ? rows[0] : null;
+};

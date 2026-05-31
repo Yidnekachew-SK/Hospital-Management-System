@@ -25,3 +25,16 @@ exports.getAllPatients = async () => {
     const [rows] = await db.execute("SELECT * FROM Patients");
     return rows;
 };
+
+// 5. Logic to update patient details
+exports.updatePatient = async (patientID, patientName, dobDate, gender, region, city, houseNumber, phone, insuranceID) => {
+    const sql = "UPDATE Patients SET PatientName = ?, DOB_DATE = ?, Gender = ?, Region = ?, City = ?, HouseNumber = ?, Phone = ?, InsuranceID = ? WHERE PatientID = ?";
+    const [result] = await db.execute(sql, [patientName, dobDate, gender, region, city, houseNumber, phone, insuranceID, patientID]);
+    return result.affectedRows > 0;
+};
+
+// 6. Logic to get global patient count
+exports.getPatientCount = async () => {
+    const [rows] = await db.execute("SELECT COUNT(*) AS TotalPatients FROM Patients");
+    return rows[0].TotalPatients;
+};

@@ -25,3 +25,17 @@ exports.getAllVisitors = async () => {
     const [rows] = await db.execute("SELECT * FROM Visitors");
     return rows;
 };
+
+// 5. Logic to get visitors by PatientID
+exports.getVisitorsByPatient = async (patientID) => {
+    const sql = "SELECT * FROM Visitors WHERE PatientID = ?";
+    const [rows] = await db.execute(sql, [patientID]);
+    return rows;
+};
+
+// 6. Logic to count visitors for a specific PatientID
+exports.countVisitorsByPatient = async (patientID) => {
+    const sql = "SELECT COUNT(*) AS VisitorCount FROM Visitors WHERE PatientID = ?";
+    const [rows] = await db.execute(sql, [patientID]);
+    return rows[0].VisitorCount;
+};

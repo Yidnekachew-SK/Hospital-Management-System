@@ -25,3 +25,45 @@ exports.getAllAdmissions = async () => {
     const [rows] = await db.execute("SELECT * FROM Admissions");
     return rows;
 };
+
+// 5. Logic to get appointments by PatientID
+exports.getAppointmentsByPatientID = async (patientID) => {
+    const sql = "SELECT * FROM Appointments WHERE PatientID = ?";
+    const [rows] = await db.execute(sql, [patientID]);
+    return rows;
+};
+
+// 6. Logic to get appointments by DoctorID (EmployeeID)
+exports.getAppointmentsByDoctorID = async (doctorID) => {
+    const sql = "SELECT * FROM Appointments WHERE EmployeeID = ?";
+    const [rows] = await db.execute(sql, [doctorID]);
+    return rows;
+};
+
+// 7. Logic to update an appointment
+exports.updateAppointment = async (appointmentID, appointmentDate, appointmentTime, appointmentStatus) => {
+    const sql = "UPDATE Appointments SET AppointmentDate = ?, AppointmentTime = ?, AppointmentStatus = ? WHERE AppointmentID = ?";
+    const [result] = await db.execute(sql, [appointmentDate, appointmentTime, appointmentStatus, appointmentID]);
+    return result.affectedRows > 0;
+};
+
+// 8. Logic to delete an appointment
+exports.deleteAppointment = async (appointmentID) => {
+    const sql = "DELETE FROM Appointments WHERE AppointmentID = ?";
+    const [result] = await db.execute(sql, [appointmentID]);
+    return result.affectedRows > 0;
+};
+
+// 9. Logic to update an admission
+exports.updateAdmission = async (admissionID, dischargeDate, primaryDiagnosis) => {
+    const sql = "UPDATE Admissions SET DischargeDate = ?, PrimaryDiagnosis = ? WHERE AdmissionID = ?";
+    const [result] = await db.execute(sql, [dischargeDate, primaryDiagnosis, admissionID]);
+    return result.affectedRows > 0;
+};
+
+// 10. Logic to delete an admission
+exports.deleteAdmission = async (admissionID) => {
+    const sql = "DELETE FROM Admissions WHERE AdmissionID = ?";
+    const [result] = await db.execute(sql, [admissionID]);
+    return result.affectedRows > 0;
+};
