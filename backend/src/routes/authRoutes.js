@@ -8,8 +8,11 @@ console.log("Checking Auth Controller Import:", authController);
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 
-router.post('/user-accounts', verifyToken, checkRole(['admin']), authController.getUserAccounts);
+router.get('/user/:Username', verifyToken, authController.getUserDetails);
+router.put('/user/:UserID', verifyToken, authController.updateUser);
+
 router.get('/user-accounts', verifyToken, checkRole(['admin']), authController.getUserAccounts);
+router.put('/user-accounts/:UserID', verifyToken, checkRole(['admin']), authController.updateUserAccount);
 
 router.post('/activity-logs', verifyToken, authController.logActivity);
 router.get('/activity-logs', verifyToken, authController.getActivityLogs);
