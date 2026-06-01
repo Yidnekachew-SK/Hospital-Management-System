@@ -8,6 +8,10 @@ console.log("Checking Auth Controller Import:", authController);
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 
+// New endpoints for frontend verification steps
+router.get('/verify-username/:username', authController.verifyUsername);
+router.get('/verify-password', authController.verifyPassword);
+
 router.get('/user/:Username', verifyToken, authController.getUserDetails);
 router.put('/user/:UserID', verifyToken, authController.updateUser);
 
