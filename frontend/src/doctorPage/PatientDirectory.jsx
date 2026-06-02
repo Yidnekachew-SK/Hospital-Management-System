@@ -247,7 +247,7 @@ export default function PatientDirectory({
               </h3>
               <button
                 onClick={() => {
-                  setNewRxForm({ patientId: selectedPatientId, items: [{ medicationId: "MED-01", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }] });
+                  setNewRxForm({ patientId: selectedPatientId, items: [{ medicationId: "1", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }] });
                   setShowPrescriptionModal(true);
                 }}
                 className="text-[10px] text-teal-600 hover:underline font-bold cursor-pointer"
@@ -358,7 +358,7 @@ export default function PatientDirectory({
               </h3>
               <button
                 onClick={() => {
-                  setNewSurgeryForm({ patientId: selectedPatientId, surgeryType: "Diagnostic Angioplasty", date: new Date().toISOString().split("T")[0], roomId: "RM-201" });
+                  setNewSurgeryForm({ patientId: selectedPatientId, surgeryType: "Diagnostic Angioplasty", date: new Date().toISOString().split("T")[0], roomId: "1" });
                   setShowSurgeryRequestModal(true);
                 }}
                 className="text-[10px] text-teal-605 hover:underline font-bold cursor-pointer"

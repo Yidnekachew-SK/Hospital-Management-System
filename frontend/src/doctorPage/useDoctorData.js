@@ -1,18 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
-import { AddisHospitalApi } from "./api";
-import { 
-  INITIAL_INSURANCES, 
-  INITIAL_ROOMS, 
-  INITIAL_MEDICATIONS, 
-  STAGED_DOCTOR 
-} from "./constants";
 import { generateCalendarDays, MONTH_NAMES } from "./calendarHelper";
 
 /**
  * Custom React Hook that encapsulates state, API interactions, 
  * data transforms, filtering, and form handlers for the Doctor Portal.
+ * 
+ * @param {string} username - The logged in doctor's username passed from the router
  */
-export function useDoctorData() {
+export function useDoctorData(username) {
+  // --- DYNAMIC CORE STATES ---
+  const [activeDoctor, setActiveDoctor] = useState(null);
+
   // --- DATABASE STATE LAYERS ---
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -22,6 +20,11 @@ export function useDoctorData() {
   const [labTests, setLabTests] = useState([]);
   const [labReports, setLabReports] = useState([]);
   const [surgeries, setSurgeries] = useState([]);
+  
+  // Dynamic collections replacing constants.js
+  const [rooms, setRooms] = useState([]);
+  const [insurances, setInsurances] = useState([]);
+  const [medications, setMedications] = useState([]);
 
   // --- UI STATES ---
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -43,30 +46,30 @@ export function useDoctorData() {
 
   // --- SPECIFIC FORM DATA OBJECTS ---
   const [newApptForm, setNewApptForm] = useState({
-    patientId: "PAT-001",
+    patientId: "1",
     date: new Date().toISOString().split("T")[0],
     time: "10:30",
     status: "Scheduled"
   });
 
   const [newRxForm, setNewRxForm] = useState({
-    patientId: "PAT-001",
+    patientId: "1",
     items: [
-      { medicationId: "MED-01", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }
+      { medicationId: "1", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }
     ]
   });
 
   const [newLabForm, setNewLabForm] = useState({
-    patientId: "PAT-001",
+    patientId: "1",
     testType: "Lipid Profile Panel",
     requestDate: new Date().toISOString().split("T")[0]
   });
 
   const [newSurgeryForm, setNewSurgeryForm] = useState({
-    patientId: "PAT-001",
+    patientId: "1",
     surgeryType: "Diagnostic Angioplasty",
     date: new Date().toISOString().split("T")[0],
-    roomId: "RM-201"
+    roomId: "1"
   });
 
   const [newLabReportForm, setNewLabReportForm] = useState({
@@ -96,54 +99,180 @@ export function useDoctorData() {
     RoomID: ""
   });
 
-  // Asynchronous API Calling Mechanism to populate the data from AddisHospitalApi helper
+  // Helper to format ISO dates to clean YYYY-MM-DD strings
+  const formatDateStr = (dateVal) => {
+    if (!dateVal) return "";
+    return dateVal.split("T")[0];
+  };
+
+  // Load backend data from REST API endpoints
   const loadAllData = async () => {
     try {
-      const fetchedPatients = await AddisHospitalApi.getPatients();
-      setPatients(fetchedPatients);
+      // 1. Patients
+      const patientsRes = await fetch('/api/v1/patients/patient');
+      const patientsJson = await patientsRes.json();
+      setPatients(patientsJson.data.patients || []);
 
-      const fetchedAppts = await AddisHospitalApi.getAppointments();
-      setAppointments(fetchedAppts);
+      // 2. Appointments
+      const apptsRes = await fetch('/api/v1/appointments');
+      const apptsJson = await apptsRes.json();
+      const formattedAppts = (apptsJson.data.appointments || []).map(a => ({
+        ...a,
+        AppointmentDate: formatDateStr(a.AppointmentDate),
+        Status: a.AppointmentStatus || a.Status // Fallback mapping to handle frontend Status references
+      }));
+      setAppointments(formattedAppts);
 
-      const fetchedRecords = await AddisHospitalApi.getMedicalRecords();
-      setMedicalRecords(fetchedRecords);
+      // 3. Prescriptions
+      const rxRes = await fetch('/api/v1/pharmacy/prescriptions');
+      const rxJson = await rxRes.json();
+      const formattedRx = (rxJson.data.prescriptions || []).map(r => ({
+        ...r,
+        DateIssued: formatDateStr(r.DateIssued)
+      }));
+      setPrescriptions(formattedRx);
 
-      const fetchedRx = await AddisHospitalApi.getPrescriptions();
-      setPrescriptions(fetchedRx);
+      // 4. Prescription Items
+      const rxItemsRes = await fetch('/api/v1/pharmacy/prescription-items');
+      const rxItemsJson = await rxItemsRes.json();
+      setPrescriptionItems(rxItemsJson.data.prescriptionItems || []);
 
-      const fetchedRxItems = await AddisHospitalApi.getPrescriptionItems();
-      setPrescriptionItems(fetchedRxItems);
+      // 5. Lab Tests
+      const labTestsRes = await fetch('/api/v1/diagnostics/lab-tests');
+      const labTestsJson = await labTestsRes.json();
+      
+      // 6. Lab Reports
+      const labReportsRes = await fetch('/api/v1/diagnostics/lab-reports');
+      const labReportsJson = await labReportsRes.json();
+      const formattedReports = (labReportsJson.data.labReports || []).map(rep => ({
+        ...rep,
+        ReportDate: formatDateStr(rep.ReportDate)
+      }));
+      setLabReports(formattedReports);
 
-      const fetchedLabTests = await AddisHospitalApi.getLabTests();
-      setLabTests(fetchedLabTests);
+      // Resolve Lab Test Status dynamically based on report presence (no Status column exists in MySQL)
+      const formattedLabTests = (labTestsJson.data.labTests || []).map(test => {
+        const hasReport = formattedReports.some(rep => rep.TestID === test.TestID);
+        return {
+          ...test,
+          RequestDate: formatDateStr(test.RequestDate),
+          Status: hasReport ? "Completed" : "Pending"
+        };
+      });
+      setLabTests(formattedLabTests);
 
-      const fetchedLabReports = await AddisHospitalApi.getLabReports();
-      setLabReports(fetchedLabReports);
+      // 7. Surgeries
+      const surgeriesRes = await fetch('/api/v1/diagnostics/surgeries');
+      const surgeriesJson = await surgeriesRes.json();
+      const formattedSurgeries = (surgeriesJson.data.surgeries || []).map(s => ({
+        ...s,
+        SurgeryDate: formatDateStr(s.SurgeryDate)
+      }));
+      setSurgeries(formattedSurgeries);
 
-      const fetchedSurgeries = await AddisHospitalApi.getSurgeries();
-      setSurgeries(fetchedSurgeries);
+      // 8. Dynamic list configurations (replacing constant files)
+      const roomsRes = await fetch('/api/v1/clinic/rooms');
+      const roomsJson = await roomsRes.json();
+      setRooms(roomsJson.data.rooms || []);
+
+      const insRes = await fetch('/api/v1/patients/insurance');
+      const insJson = await insRes.json();
+      setInsurances(insJson.data.insuranceRecords || []);
+
+      const medsRes = await fetch('/api/v1/pharmacy/medications');
+      const medsJson = await medsRes.json();
+      setMedications(medsJson.data.medications || []);
+
     } catch (err) {
-      console.error("[Addis Hospital Mount Error]: Failed to background sync API schemas:", err);
+      console.error("[Addis Hospital Sync Error]: Failed to background sync API data:", err);
     }
   };
 
+  // --- SYNC ACTIVE DOCTOR AND SPECIFIC RECORDS ON MOUNT/PROP CHANGE ---
   useEffect(() => {
-    loadAllData();
-  }, []);
+    const initializeProfileAndData = async () => {
+      await loadAllData();
+      
+      try {
+        const response = await fetch('/api/v1/employees/doctors/all/detailed');
+        const json = await response.json();
+        const detailedDoctors = json.data.doctorInfo || [];
+        
+        // Match active username from the router (e.g. 'sarahlee')
+        const matchedDoctor = detailedDoctors.find(d => {
+          const normalizedName = d.EmployeeName.toLowerCase().replace("dr. ", "").replace(/\s+/g, "");
+          return normalizedName === username?.toLowerCase() || d.EmployeeID === username;
+        }) || detailedDoctors[0];
+        
+        setActiveDoctor(matchedDoctor);
+
+        // Fetch medical records matching this doctor's EmployeeID
+        if (matchedDoctor) {
+          const recordsRes = await fetch(`/api/v1/records/employee/${matchedDoctor.EmployeeID}`);
+          const recordsJson = await recordsRes.json();
+          const formattedRecords = (recordsJson.data.records || []).map(rec => ({
+            ...rec,
+            RecordDate: formatDateStr(rec.RecordDate)
+          }));
+          setMedicalRecords(formattedRecords);
+        }
+      } catch (err) {
+        console.error("Failed to initialize active doctor credentials:", err);
+      }
+    };
+
+    initializeProfileAndData();
+  }, [username]);
+
+  // Fetch full medical record history dynamically when a patient is selected in detail view
+  useEffect(() => {
+    if (!selectedPatientId) return;
+    const fetchPatientRecords = async () => {
+      try {
+        const res = await fetch(`/api/v1/records/patient/${selectedPatientId}`);
+        const json = await res.json();
+        if (json.success && json.data.records) {
+          setMedicalRecords(prev => {
+            const existingMap = new Map(prev.map(r => [r.RecordID, r]));
+            json.data.records.forEach(r => {
+              existingMap.set(r.RecordID, {
+                ...r,
+                RecordDate: formatDateStr(r.RecordDate)
+              });
+            });
+            return Array.from(existingMap.values());
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load records for patient:", err);
+      }
+    };
+    fetchPatientRecords();
+  }, [selectedPatientId]);
 
   // --- ACTION SUBMISSIONS ---
   const handleAddAppointment = async (e) => {
     e.preventDefault();
+    if (!activeDoctor) return;
     try {
-      await AddisHospitalApi.createAppointment({
-        PatientID: newApptForm.patientId,
-        EmployeeID: STAGED_DOCTOR.EmployeeID,
-        AppointmentDate: newApptForm.date,
-        AppointmentTime: newApptForm.time,
-        Status: newApptForm.status
+      const response = await fetch('/api/v1/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          PatientID: parseInt(newApptForm.patientId, 10) || newApptForm.patientId,
+          EmployeeID: activeDoctor.EmployeeID,
+          AppointmentDate: newApptForm.date,
+          AppointmentTime: newApptForm.time + ":00", // Seconds formatting for SQL
+          AppointmentStatus: newApptForm.status
+        })
       });
-      setShowAppointmentModal(false);
-      loadAllData();
+      const json = await response.json();
+      if (json.success) {
+        setShowAppointmentModal(false);
+        loadAllData();
+      } else {
+        console.error("Failed to add appointment:", json.message);
+      }
     } catch (err) {
       console.error("Failed to add appointment:", err);
     }
@@ -151,13 +280,45 @@ export function useDoctorData() {
 
   const handleAddPrescriptionSubmit = async (e) => {
     e.preventDefault();
+    if (!activeDoctor) return;
     setSigningPrescription(true);
     try {
-      await AddisHospitalApi.createPrescription(
-        newRxForm.patientId,
-        STAGED_DOCTOR.EmployeeID,
-        newRxForm.items
-      );
+      // 1. Create prescription header record
+      const rxResponse = await fetch('/api/v1/pharmacy/prescriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          PatientID: parseInt(newRxForm.patientId, 10) || newRxForm.patientId,
+          EmployeeID: activeDoctor.EmployeeID,
+          DateIssued: new Date().toISOString().split("T")[0]
+        })
+      });
+      const rxJson = await rxResponse.json();
+      if (!rxJson.success) {
+        throw new Error(rxJson.message || "Failed to create prescription header");
+      }
+
+      const prescriptionId = rxJson.data.PrescriptionID;
+
+      // 2. Submit individual item records
+      for (const item of newRxForm.items) {
+        const itemResponse = await fetch('/api/v1/pharmacy/prescription-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            PrescriptionID: prescriptionId,
+            MedicationID: parseInt(item.medicationId, 10) || item.medicationId,
+            Dosage: item.dosage,
+            Duration: item.duration,
+            Frequency: item.frequency
+          })
+        });
+        const itemJson = await itemResponse.json();
+        if (!itemJson.success) {
+          console.error("Failed to add prescription item:", itemJson.message);
+        }
+      }
+
       setSigningPrescription(false);
       setShowPrescriptionModal(false);
       loadAllData();
@@ -169,15 +330,25 @@ export function useDoctorData() {
 
   const handleRequestLabSubmit = async (e) => {
     e.preventDefault();
+    if (!activeDoctor) return;
     try {
-      await AddisHospitalApi.createLabTest({
-        PatientID: newLabForm.patientId,
-        EmployeeID: STAGED_DOCTOR.EmployeeID,
-        TestType: newLabForm.testType,
-        RequestDate: newLabForm.requestDate
+      const response = await fetch('/api/v1/diagnostics/lab-tests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          PatientID: parseInt(newLabForm.patientId, 10) || newLabForm.patientId,
+          EmployeeID: activeDoctor.EmployeeID,
+          TestType: newLabForm.testType,
+          RequestDate: newLabForm.requestDate
+        })
       });
-      setShowLabRequestModal(false);
-      loadAllData();
+      const json = await response.json();
+      if (json.success) {
+        setShowLabRequestModal(false);
+        loadAllData();
+      } else {
+        console.error("Failed to order lab:", json.message);
+      }
     } catch (err) {
       console.error("Failed to order lab:", err);
     }
@@ -185,16 +356,27 @@ export function useDoctorData() {
 
   const handleScheduleSurgerySubmit = async (e) => {
     e.preventDefault();
+    if (!activeDoctor) return;
     try {
-      await AddisHospitalApi.createSurgery({
-        PatientID: newSurgeryForm.patientId,
-        EmployeeID: STAGED_DOCTOR.EmployeeID,
-        SurgeryDate: newSurgeryForm.date,
-        SurgeryType: newSurgeryForm.surgeryType,
-        RoomID: newSurgeryForm.roomId
+      const response = await fetch('/api/v1/diagnostics/surgeries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          PatientID: parseInt(newSurgeryForm.patientId, 10) || newSurgeryForm.patientId,
+          EmployeeID: activeDoctor.EmployeeID,
+          RoomID: parseInt(newSurgeryForm.roomId, 10) || newSurgeryForm.roomId,
+          SurgeryDate: newSurgeryForm.date,
+          SurgeryType: newSurgeryForm.surgeryType,
+          Outcome: "Pending"
+        })
       });
-      setShowSurgeryRequestModal(false);
-      loadAllData();
+      const json = await response.json();
+      if (json.success) {
+        setShowSurgeryRequestModal(false);
+        loadAllData();
+      } else {
+        console.error("Failed to schedule surgery theatre:", json.message);
+      }
     } catch (err) {
       console.error("Failed to schedule surgery theatre:", err);
     }
@@ -204,13 +386,23 @@ export function useDoctorData() {
     e.preventDefault();
     if (!newLabReportForm.testId) return;
     try {
-      await AddisHospitalApi.submitLabReport(
-        newLabReportForm.testId,
-        newLabReportForm.resultSummary,
-        newLabReportForm.pathologistComments
-      );
-      setShowAddLabReportModal(false);
-      loadAllData();
+      const response = await fetch('/api/v1/diagnostics/lab-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          TestID: parseInt(newLabReportForm.testId, 10) || newLabReportForm.testId,
+          ResultSummary: newLabReportForm.resultSummary,
+          ReportDate: new Date().toISOString().split("T")[0],
+          PathologistComments: newLabReportForm.pathologistComments
+        })
+      });
+      const json = await response.json();
+      if (json.success) {
+        setShowAddLabReportModal(false);
+        loadAllData();
+      } else {
+        console.error("Failed to publish lab report:", json.message);
+      }
     } catch (err) {
       console.error("Failed to publish lab report:", err);
     }
@@ -218,15 +410,37 @@ export function useDoctorData() {
 
   const handleUpdateRecordSubmit = async (e) => {
     e.preventDefault();
+    if (!activeDoctor) return;
     try {
-      await AddisHospitalApi.updateMedicalRecord(editRecordForm.RecordID, {
-        PatientID: editRecordForm.PatientID,
-        RecordDate: editRecordForm.RecordDate,
-        FinalDiagnosis: editRecordForm.FinalDiagnosis,
-        ClinicalNotes: editRecordForm.ClinicalNotes
+      const isNew = !editRecordForm.RecordID;
+      const url = isNew ? '/api/v1/records' : `/api/v1/records/${editRecordForm.RecordID}`;
+      const method = isNew ? 'POST' : 'PUT';
+
+      const bodyData = isNew
+        ? {
+            PatientID: parseInt(editRecordForm.PatientID, 10) || editRecordForm.PatientID,
+            EmployeeID: activeDoctor.EmployeeID,
+            RecordDate: editRecordForm.RecordDate || new Date().toISOString().split("T")[0],
+            ClinicalNotes: editRecordForm.ClinicalNotes,
+            FinalDiagnosis: editRecordForm.FinalDiagnosis
+          }
+        : {
+            ClinicalNotes: editRecordForm.ClinicalNotes,
+            FinalDiagnosis: editRecordForm.FinalDiagnosis
+          };
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
       });
-      setShowUpdateRecordModal(false);
-      loadAllData();
+      const json = await response.json();
+      if (json.success) {
+        setShowUpdateRecordModal(false);
+        loadAllData();
+      } else {
+        console.error("Failed to submit medical record:", json.message);
+      }
     } catch (err) {
       console.error("Failed to update medical record:", err);
     }
@@ -234,17 +448,27 @@ export function useDoctorData() {
 
   const handleUpdateSurgerySubmit = async (e) => {
     e.preventDefault();
+    if (!activeDoctor) return;
     try {
-      await AddisHospitalApi.updateSurgery(editSurgeryForm.SurgeryID, {
-        PatientID: editSurgeryForm.PatientID,
-        EmployeeID: editSurgeryForm.EmployeeID,
-        SurgeryDate: editSurgeryForm.SurgeryDate,
-        SurgeryType: editSurgeryForm.SurgeryType,
-        Outcome: editSurgeryForm.Outcome,
-        RoomID: editSurgeryForm.RoomID
+      const response = await fetch(`/api/v1/diagnostics/surgeries/${editSurgeryForm.SurgeryID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          PatientID: parseInt(editSurgeryForm.PatientID, 10) || editSurgeryForm.PatientID,
+          EmployeeID: editSurgeryForm.EmployeeID || activeDoctor.EmployeeID,
+          RoomID: parseInt(editSurgeryForm.RoomID, 10) || editSurgeryForm.RoomID,
+          SurgeryDate: editSurgeryForm.SurgeryDate,
+          SurgeryType: editSurgeryForm.SurgeryType,
+          Outcome: editSurgeryForm.Outcome
+        })
       });
-      setShowUpdateSurgeryModal(false);
-      loadAllData();
+      const json = await response.json();
+      if (json.success) {
+        setShowUpdateSurgeryModal(false);
+        loadAllData();
+      } else {
+        console.error("Failed to update surgery:", json.message);
+      }
     } catch (err) {
       console.error("Failed to update surgery scheduled event:", err);
     }
@@ -253,7 +477,7 @@ export function useDoctorData() {
   // --- ENHANCED PATIENT DATA LOOKUP ---
   const enrichedPatients = useMemo(() => {
     return patients.map(pat => {
-      const insurance = INITIAL_INSURANCES.find(ins => ins.InsuranceID === pat.InsuranceID) || null;
+      const insurance = insurances.find(ins => ins.InsuranceID === pat.InsuranceID) || null;
       const patientRecords = medicalRecords.filter(rec => rec.PatientID === pat.PatientID);
       const latestClinicalRecord = patientRecords[patientRecords.length - 1] || null;
       
@@ -270,7 +494,7 @@ export function useDoctorData() {
         recordsCount: patientRecords.length
       };
     });
-  }, [patients, medicalRecords, labTests]);
+  }, [patients, medicalRecords, labTests, insurances]);
 
   // --- FILTERED SELECTIONS ---
   const filteredPatients = useMemo(() => {
@@ -278,8 +502,8 @@ export function useDoctorData() {
     const query = searchQuery.toLowerCase();
     return enrichedPatients.filter(
       p => p.PatientName.toLowerCase().includes(query) || 
-           p.PatientID.toLowerCase().includes(query) || 
-           p.NationalID.includes(query) || 
+           String(p.PatientID).toLowerCase().includes(query) || 
+           (p.NationalID && p.NationalID.includes(query)) || 
            p.condition.toLowerCase().includes(query)
     );
   }, [enrichedPatients, searchQuery]);
@@ -289,10 +513,10 @@ export function useDoctorData() {
     const q = searchQuery.toLowerCase();
     return labTests.filter(lab => {
       const pat = patients.find(p => p.PatientID === lab.PatientID);
-      return lab.TestID.toLowerCase().includes(q) || 
+      return String(lab.TestID).toLowerCase().includes(q) || 
              lab.TestType.toLowerCase().includes(q) || 
              (pat && pat.PatientName.toLowerCase().includes(q)) || 
-             lab.PatientID.toLowerCase().includes(q);
+             String(lab.PatientID).toLowerCase().includes(q);
     });
   }, [labTests, searchQuery, patients]);
 
@@ -301,10 +525,10 @@ export function useDoctorData() {
     const q = searchQuery.toLowerCase();
     return surgeries.filter(s => {
       const pat = patients.find(p => p.PatientID === s.PatientID);
-      return s.SurgeryID.toLowerCase().includes(q) || 
+      return String(s.SurgeryID).toLowerCase().includes(q) || 
              s.SurgeryType.toLowerCase().includes(q) || 
              (pat && pat.PatientName.toLowerCase().includes(q)) || 
-             s.PatientID.toLowerCase().includes(q);
+             String(s.PatientID).toLowerCase().includes(q);
     });
   }, [surgeries, searchQuery, patients]);
 
@@ -320,13 +544,13 @@ export function useDoctorData() {
     }).filter(t => t.PatientID === selectedPatientId);
 
     const activeSurgs = surgeries.map(s => {
-      const rm = INITIAL_ROOMS.find(r => r.RoomID === s.RoomID);
+      const rm = rooms.find(r => r.RoomID === s.RoomID);
       return { ...s, RoomName: rm ? rm.RoomNumber : s.RoomID };
     }).filter(s => s.PatientID === selectedPatientId);
 
     const rxList = prescriptions.filter(rx => rx.PatientID === selectedPatientId).map(rx => {
       const items = prescriptionItems.filter(item => item.PrescriptionID === rx.PrescriptionID).map(item => {
-        const drug = INITIAL_MEDICATIONS.find(m => m.MedicationID === item.MedicationID);
+        const drug = medications.find(m => m.MedicationID === item.MedicationID);
         return { ...item, drugName: drug ? drug.MedicationName : "Prescribed Formula" };
       });
       return { ...rx, items };
@@ -340,7 +564,7 @@ export function useDoctorData() {
       prescriptions: rxList,
       admissions: []
     };
-  }, [selectedPatientId, enrichedPatients, medicalRecords, labTests, labReports, surgeries, prescriptions, prescriptionItems]);
+  }, [selectedPatientId, enrichedPatients, medicalRecords, labTests, labReports, surgeries, prescriptions, prescriptionItems, rooms, medications]);
 
   // --- CALENDAR GRID GENERATION ---
   const calendarDays = useMemo(() => {
@@ -376,7 +600,7 @@ export function useDoctorData() {
   const addRxItemRow = () => {
     setNewRxForm(prev => ({
       ...prev,
-      items: [...prev.items, { medicationId: "MED-01", dosage: "250mg", duration: "7 Days", frequency: "Daily" }]
+      items: [...prev.items, { medicationId: "1", dosage: "250mg", duration: "7 Days", frequency: "Daily" }]
     }));
   };
 
@@ -394,15 +618,18 @@ export function useDoctorData() {
     }));
   };
 
-  const displayDoctorName = `Dr. ${STAGED_DOCTOR.FirstName} ${STAGED_DOCTOR.LastName}`;
+  const displayDoctorName = activeDoctor ? activeDoctor.EmployeeName : "Loading Clinician Profile...";
 
   return {
+    // Core Profile Context
+    activeDoctor,
+    displayDoctorName,
+
     // Basic layouts
     activeTab,
     setActiveTab,
     searchQuery,
     setSearchQuery,
-    displayDoctorName,
     
     // Server collections
     patients,
@@ -411,6 +638,9 @@ export function useDoctorData() {
     labTests,
     surgeries,
     labReports,
+    rooms,
+    insurances,
+    medications,
     
     // Derived outputs
     filteredPatients,
@@ -447,7 +677,7 @@ export function useDoctorData() {
     showUpdateSurgeryModal,
     setShowUpdateSurgeryModal,
     
-    // Submition handlers
+    // Submission handlers
     handleAddAppointment,
     handleAddPrescriptionSubmit,
     handleRequestLabSubmit,

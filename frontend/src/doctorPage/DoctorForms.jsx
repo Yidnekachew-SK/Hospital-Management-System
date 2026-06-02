@@ -9,23 +9,12 @@ import {
   FileText
 } from "lucide-react";
 
-const INITIAL_MEDICATIONS = [
-  { MedicationID: "MED-01", MedicationName: "Lisinopril", MedicationType: "ACE Inhibitor" },
-  { MedicationID: "MED-02", MedicationName: "Metoprolol", MedicationType: "Beta-Blocker" },
-  { MedicationID: "MED-03", MedicationName: "Atorvastatin", MedicationType: "Lipid-Lowering Agent" },
-  { MedicationID: "MED-04", MedicationName: "Warfarin", MedicationType: "Anticoagulant" },
-  { MedicationID: "MED-05", MedicationName: "Amoxicillin", MedicationType: "Antibiotic" }
-];
-
-const STAGED_DOCTOR = {
-  EmployeeID: "EMP-042",
-  FirstName: "Sarah",
-  LastName: "Chen",
-  LicenseNumber: "LIC-MC-998242"
-};
-
 export default function DoctorForms({
   patients,
+  medications = [],
+  rooms = [],
+  activeDoctor = null,
+
   // Appointment modal props
   showAppointmentModal,
   setShowAppointmentModal,
@@ -84,6 +73,14 @@ export default function DoctorForms({
     d.setDate(d.getDate() + offsetDays);
     return d.toISOString().split("T")[0];
   };
+
+  const doctorNameDisplay = activeDoctor 
+    ? activeDoctor.EmployeeName 
+    : "Attending Clinical Practitioner";
+
+  const doctorLicenseDisplay = activeDoctor 
+    ? activeDoctor.LicenseNumber 
+    : "System Clearance Granted";
 
   return (
     <>
@@ -151,7 +148,7 @@ export default function DoctorForms({
               </div>
 
               <div className="bg-slate-50 rounded-xl p-3 text-[10px] text-slate-400 font-semibold leading-relaxed">
-                Appointing Practitioner: <strong>Dr. {STAGED_DOCTOR.FirstName} {STAGED_DOCTOR.LastName}</strong> (License: {STAGED_DOCTOR.LicenseNumber})
+                Appointing Practitioner: <strong>{doctorNameDisplay}</strong> (License: {doctorLicenseDisplay})
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -236,7 +233,7 @@ export default function DoctorForms({
                             onChange={(e) => updateRxItemRow(idx, "medicationId", e.target.value)}
                             className="w-full bg-white border border-slate-200 rounded p-1 font-semibold text-xs"
                           >
-                            {INITIAL_MEDICATIONS.map(m => (
+                            {medications.map(m => (
                               <option key={m.MedicationID} value={m.MedicationID}>{m.MedicationName} ({m.MedicationType})</option>
                             ))}
                           </select>
@@ -353,7 +350,7 @@ export default function DoctorForms({
                 />
               </div>
 
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-[10px] text-amber-800 font-medium leading-relaxed leading-relaxed">
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-[10px] text-amber-800 font-medium leading-relaxed">
                 Notice: Submitting places a "Pending" record in patients lab test history log. Attending clinician can manually compile reports locally.
               </div>
 
@@ -434,14 +431,15 @@ export default function DoctorForms({
                     onChange={(e) => setNewSurgeryForm({ ...newSurgeryForm, roomId: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold"
                   >
-                    <option value="RM-201">OR-1 (RM-201)</option>
-                    <option value="RM-301">OR-ICU (RM-301)</option>
+                    {rooms.map(r => (
+                      <option key={r.RoomID} value={r.RoomID}>{r.RoomNumber} ({r.RoomType})</option>
+                    ))}
                   </select>
                 </div>
               </div>
 
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[10px] text-slate-400 font-semibold leading-relaxed">
-                Surgeon Assignee: <strong>Dr. {STAGED_DOCTOR.FirstName} {STAGED_DOCTOR.LastName}</strong> (License: {STAGED_DOCTOR.LicenseNumber})
+                Surgeon Assignee: <strong>{doctorNameDisplay}</strong> (License: {doctorLicenseDisplay})
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -650,12 +648,13 @@ export default function DoctorForms({
                 <div className="space-y-1">
                   <label className="font-bold text-slate-500 block">Operating Room ID</label>
                   <select
-                    value={editSurgeryForm?.RoomID || "RM-201"}
+                    value={editSurgeryForm?.RoomID || ""}
                     onChange={(e) => setEditSurgeryForm && setEditSurgeryForm({ ...editSurgeryForm, RoomID: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-850"
                   >
-                    <option value="RM-201">OR-1 (RM-201)</option>
-                    <option value="RM-301">OR-ICU (RM-301)</option>
+                    {rooms.map(r => (
+                      <option key={r.RoomID} value={r.RoomID}>{r.RoomNumber} ({r.RoomType})</option>
+                    ))}
                   </select>
                 </div>
               </div>

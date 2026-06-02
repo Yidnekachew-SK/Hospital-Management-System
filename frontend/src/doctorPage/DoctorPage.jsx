@@ -168,6 +168,8 @@ export default function DoctorPage({ username, onLogout }) {
               <PatientDirectory
                 filteredPatients={filteredPatients}
                 medicalRecords={medicalRecords}
+                medications={medications}
+                rooms={rooms}
                 selectedPatientId={selectedPatientId}
                 setSelectedPatientId={setSelectedPatientId}
                 selectedPatientData={selectedPatientData}
@@ -236,6 +238,9 @@ export default function DoctorPage({ username, onLogout }) {
       {/* OVERLAY FORMS COORDINATOR */}
       <DoctorForms
         patients={patients}
+        medications={medications}
+        rooms={rooms}
+        activeDoctor={activeDoctor}
         showAppointmentModal={showAppointmentModal}
         setShowAppointmentModal={setShowAppointmentModal}
         newApptForm={newApptForm}

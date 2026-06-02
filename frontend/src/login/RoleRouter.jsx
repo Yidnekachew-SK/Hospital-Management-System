@@ -1,8 +1,8 @@
 import React from "react";
-import DoctorDashboard from "./dashboard/DoctorPage.jsx";
-import PatientDashboard from "./dashboard/PatientPage.jsx";
-import NurseDashboard from "./dashboard/NurseDashboard.jsx";
-import AdminDashboard from "./dashboard/AdminDashboard.jsx";
+import DoctorDashboard from "../doctorPage/DoctorPage.jsx";
+import PatientDashboard from "../dashboard/PatientDashboard.jsx";
+import NurseDashboard from "../dashboard/NurseDashboard.jsx";
+import AdminDashboard from "../dashboard/AdminDashboard.jsx";
 
 /**
  * RoleRouter component inspects the current user's authenticated role 

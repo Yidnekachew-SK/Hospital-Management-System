@@ -192,12 +192,12 @@ INSERT INTO Visitors (PatientID, VisitorName, RelationToPatient, VisitDate) VALU
 
 -- UserAccounts
 INSERT INTO UserAccounts (EmployeeID, Username, PasswordHash, UserRole) VALUES
-('E001','johnsmith','hash1234','Doctor'),
-('E002','sarahlee','hash2345','Doctor'),
-('E005','helen','hash3456','Nurse'),
-('E006','daniel','hash4567','Nurse'),
-('E008','michael','hash5678','Staff'),
-('E009','ruth','hash6789','Staff');
+('E001','johnsmith','$2b$10$E0qhfStFVhD2.7NK1PU/XuWMccTz8NUYDoHlmlI1ArMVBEQMzM1be','Doctor'),
+('E002','sarahlee','$2b$10$1eVPmNI8rssSjAd.mfKbVu.cgXqSpaWw4OyMmqpcQRQ0u4bmlCPJK','Doctor'),
+('E005','helen','$2b$10$58rSt.gW0O6jXHbhjnJo..SYHU/L9Gkh958ZC.KE7aBN5V5VPUWki','Nurse'),
+('E006','daniel','$2b$10$xXObWyUZlRkhaEnKDNODYeVOwqsIhjmCtAcjmzMwa9lwPOtSjQIgm','Nurse'),
+('E008','michael','$2b$10$att905d.M.DwoGNJgW3DoOuyZZc2wWg0i9ww263rFVbRjOZaQ3cQ2','Staff'),
+('E009','ruth','$2b$10$ZqTde2ZmTecAtcxN9X0E0OFW0.SaTmVkYfauBbXs5m2veCU3BjVHe','Staff');
 
 -- Logs
 INSERT INTO logs (TableName, RecordID, ActionType, ActionDate, UserID, Description) VALUES

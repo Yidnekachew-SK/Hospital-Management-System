@@ -20,6 +20,7 @@ app.use('/api/v1/finance', require('./routes/financeRoutes'));
 app.use('/api/v1/logistics', require('./routes/logisticsRoutes'));
 app.use('/api/v1/support', require('./routes/supportRoutes'));
 app.use('/api/v1/auth', require('./routes/authRoutes'));
+app.use('/api/v1/records', require('./routes/recordRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Hospital Management System API is running...');
