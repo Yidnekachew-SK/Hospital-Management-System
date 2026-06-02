@@ -18,31 +18,48 @@ exports.register = async (req, res, next) => {
     }
 };
 
-exports.login = async (req, res, next) => {
+
+// New method: Verify username exists in database
+exports.verifyUsername = async (req, res, next) => {
     try {
-        const { Username, Password } = req.body;
+        const { username } = req.params;
 
-        if (!Username || !Password) {
-            return sendError(res, 'Username and Password are required', 400);
+        if (!username) {
+            return sendError(res, 'Username is required', 400);
         }
 
-        const user = await authService.findUserByUsername(Username);
+        const user = await authService.findUserByUsername(username);
+        console.log("Verifying username:", username);
         if (!user) {
-            return sendError(res, 'Invalid username or password', 401);
+            return sendError(res, 'Username not found', 404);
         }
 
-        const isPasswordValid = await bcrypt.compare(Password, user.PasswordHash);
+        sendSuccess(res, 'Username verified', { username: user.Username, UserID: user.UserID }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// New method: Verify password matches the username
+exports.verifyPassword = async (req, res, next) => {
+    try {
+        const { username, password } = req.query;
+
+        if (!username || !password) {
+            return sendError(res, 'Username and password are required', 400);
+        }
+
+        const user = await authService.findUserByUsername(username);
+        if (!user) {
+            return sendError(res, 'Username not found', 404);
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
         if (!isPasswordValid) {
-            return sendError(res, 'Invalid username or password', 401);
+            return sendError(res, 'Invalid password', 401);
         }
 
-        const token = jwt.sign(
-            { UserID: user.UserID, Username: user.Username, UserRole: user.UserRole },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        sendSuccess(res, 'Login successful', { token, UserID: user.UserID, Username: user.Username, UserRole: user.UserRole }, 200);
+        sendSuccess(res, 'Password verified', { match: true, UserID: user.UserID }, 200);
     } catch (error) {
         next(error);
     }

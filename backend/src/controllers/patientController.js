@@ -48,3 +48,26 @@ exports.getPatients = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updatePatient = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID } = req.body;
+
+    const updated = await patientService.updatePatient(id, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID);
+    if (!updated) return sendError(res, 'Patient not found or not updated', 404);
+
+    sendSuccess(res, 'Patient updated successfully', { PatientID: id }, 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPatientCount = async (req, res, next) => {
+  try {
+    const count = await patientService.getPatientCount();
+    sendSuccess(res, 'Patient count retrieved successfully', { total: count }, 200);
+  } catch (error) {
+    next(error);
+  }
+};
