@@ -25,3 +25,4 @@ router.post('/system-logs', verifyToken, checkRole(['admin']), authController.cr
 router.get('/system-logs', verifyToken, checkRole(['admin']), authController.getSystemLogs);
 
 module.exports = router;
+module.exports = router;
