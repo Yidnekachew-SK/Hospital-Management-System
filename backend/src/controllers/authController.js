@@ -58,10 +58,12 @@ exports.verifyUsername = async (req, res, next) => {
         }
 
         const user = await authService.findUserByUsername(username);
+        console.log("Verifying username:", username);
         if (!user) {
             return sendError(res, 'Username not found', 404);
         }
 
+        console.log("User row:", user);
         sendSuccess(res, 'Username verified', { username: user.Username, UserID: user.UserID }, 200);
     } catch (error) {
         next(error);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import LoginCard from "./LoginCard.jsx";
 import { LogOut, CheckCircle2, Shield, Clock, Terminal } from "lucide-react";
-import "./index.css";
+import "./login-page-styles.css";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);

@@ -192,12 +192,12 @@ INSERT INTO Visitors (PatientID, VisitorName, RelationToPatient, VisitDate) VALU
 
 -- UserAccounts
 INSERT INTO UserAccounts (EmployeeID, Username, PasswordHash, UserRole) VALUES
-('E001','johnsmith','hash1','Doctor'),
-('E002','sarahlee','hash2','Doctor'),
-('E005','helen','hash3','Nurse'),
-('E006','daniel','hash4','Nurse'),
-('E008','michael','hash5','Staff'),
-('E009','ruth','hash6','Staff');
+('E001','johnsmith','hash1234','Doctor'),
+('E002','sarahlee','hash2345','Doctor'),
+('E005','helen','hash3456','Nurse'),
+('E006','daniel','hash4567','Nurse'),
+('E008','michael','hash5678','Staff'),
+('E009','ruth','hash6789','Staff');
 
 -- Logs
 INSERT INTO logs (TableName, RecordID, ActionType, ActionDate, UserID, Description) VALUES

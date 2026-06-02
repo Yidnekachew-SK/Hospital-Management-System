@@ -48,8 +48,8 @@ export default function LoginCard({ onLoginSuccess }) {
       console.log(`[API Request] Querying database for username: "${username}"`);
 
       // Using the exact GET verification method for username of the backend API
-      const usernameResponse = await fetch(`/api/verify-username/${encodeURIComponent(username.trim())}`);
-      
+      const usernameResponse = await fetch(`/api/v1/auth/verify-username/${encodeURIComponent(username.trim())}`);
+      console.log(usernameResponse);
       if (!usernameResponse.ok) {
         setStep("error");
         setErrorMsg("invalid username provided");
@@ -58,14 +58,14 @@ export default function LoginCard({ onLoginSuccess }) {
       }
 
       const usernameData = await usernameResponse.json();
-      console.log(`[API Success] Database found username matching "${usernameData.username}"`);
+      console.log(`[API Success] Database found username matching "${usernameData.data.username}"`);
 
       // Step B: Verifying password matching
       setStep("verifying-password");
       console.log(`[API Request] Initiating password match call asynchronously...`);
 
       // Using the get password method of the backend API to verify the password is matched
-      const passwordQueryUrl = `/api/verify-password?username=${encodeURIComponent(username.trim())}&password=${encodeURIComponent(password)}`;
+      const passwordQueryUrl = `/api/v1/auth/verify-password?username=${encodeURIComponent(username.trim())}&password=${encodeURIComponent(password)}`;
       const passwordResponse = await fetch(passwordQueryUrl);
 
       if (!passwordResponse.ok) {
@@ -85,7 +85,7 @@ export default function LoginCard({ onLoginSuccess }) {
 
       const passwordData = await passwordResponse.json();
       
-      if (passwordData.match) {
+      if (passwordData.data.match) {
         setStep("success");
         console.log("[Authentication Success] Credentials verified. Session successfully authorized.");
         

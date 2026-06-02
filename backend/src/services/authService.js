@@ -17,8 +17,10 @@ exports.getAllUserAccounts = async () => {
 
 // 3. Logic to find user by username
 exports.findUserByUsername = async (username) => {
-    const sql = "SELECT * FROM UserAccounts WHERE Username = ?";
+    const sql = "SELECT * FROM Useraccounts WHERE Username = ?";
     const [rows] = await db.execute(sql, [username]);
+    console.log("SQL query for username:", username);
+
     return rows.length > 0 ? rows[0] : null;
 };
 
