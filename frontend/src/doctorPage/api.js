@@ -89,6 +89,20 @@ const INITIAL_SURGERIES = [
   { SurgeryID: "SUR-701", PatientID: "PAT-004", EmployeeID: "EMP-042", SurgeryType: "Cardiac Bypass Angioplasty", SurgeryDate: "2026-05-29", RoomID: "RM-201", Outcome: "Pending" }
 ];
 
+const INITIAL_BILLS = [
+  { BillID: "BIL-201", PatientID: "PAT-001", BillingDate: "2026-05-15", Description: "Cardiology consultation, ECG testing, and lipid lab work", TotalAmount: 4500, PaidAmount: 4500, Status: "Paid" },
+  { BillID: "BIL-202", PatientID: "PAT-001", BillingDate: "2026-05-28", Description: "Follow-up outpatient care and prescription dispensary fees", TotalAmount: 1200, PaidAmount: 1200, Status: "Paid" },
+  { BillID: "BIL-203", PatientID: "PAT-002", BillingDate: "2026-05-20", Description: "Cardiac Catheterization post-op recovery suite fees", TotalAmount: 15500, PaidAmount: 10000, Status: "Partially Paid" },
+  { BillID: "BIL-204", PatientID: "PAT-003", BillingDate: "2026-05-25", Description: "Asthma intensive nebulizer session & lab diagnostics", TotalAmount: 3200, PaidAmount: 0, Status: "Unpaid" },
+  { BillID: "BIL-205", PatientID: "PAT-004", BillingDate: "2026-05-29", Description: "Operating Room fee (Cardiac Bypass Stage 1)", TotalAmount: 28000, PaidAmount: 0, Status: "Unpaid" }
+];
+
+const INITIAL_PAYMENTS = [
+  { PaymentID: "PAY-101", BillID: "BIL-201", PaymentDate: "2026-05-15", AmountPaid: 4500, PaymentMethod: "CBE Birr", TransactionRef: "CBE-9812401B" },
+  { PaymentID: "PAY-102", BillID: "BIL-202", PaymentDate: "2026-05-28", AmountPaid: 1200, PaymentMethod: "Telebirr", TransactionRef: "TEL-2299401C" },
+  { PaymentID: "PAY-103", BillID: "BIL-203", PaymentDate: "2026-05-21", AmountPaid: 10000, PaymentMethod: "Credit Card", TransactionRef: "CRD-5001492A" }
+];
+
 // LocalStorage loaders helper
 const load = (key, fallback) => {
   try {
@@ -256,5 +270,17 @@ export const AddisHospitalApi = {
     }
     save("surgeries", surgeries);
     return surgeries;
+  },
+
+  getBills: async () => {
+    const data = load("bills", INITIAL_BILLS);
+    save("bills", data);
+    return data;
+  },
+
+  getPayments: async () => {
+    const data = load("payments", INITIAL_PAYMENTS);
+    save("payments", data);
+    return data;
   }
 };
