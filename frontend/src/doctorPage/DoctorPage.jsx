@@ -1,6 +1,7 @@
 import React from "react";
 import { Search } from "lucide-react";
 import "./DoctorPage.css";
+import "./index.css";
 import Sidebar from "./Sidebar";
 import DashboardOverview from "./DashboardOverview";
 import PatientDirectory from "./PatientDirectory";
@@ -9,7 +10,6 @@ import LabsDirectory from "./LabsDirectory";
 import SurgeriesScheduler from "./SurgeriesScheduler";
 import DoctorForms from "./DoctorForms";
 import { useDoctorData } from "./useDoctorData";
-import "./DoctorPage.css";
 
 export default function DoctorPage({ username, onLogout }) {
   const {
@@ -92,7 +92,7 @@ export default function DoctorPage({ username, onLogout }) {
     addRxItemRow,
     updateRxItemRow,
     removeRxItemRow
-  } = useDoctorData();
+  } = useDoctorData(username);
 
   return (
     <div id="doctor-workspace" className="flex h-screen w-full bg-[#F8FAFC] font-sans overflow-hidden text-[#1E293B]">
@@ -168,8 +168,6 @@ export default function DoctorPage({ username, onLogout }) {
               <PatientDirectory
                 filteredPatients={filteredPatients}
                 medicalRecords={medicalRecords}
-                medications={medications}
-                rooms={rooms}
                 selectedPatientId={selectedPatientId}
                 setSelectedPatientId={setSelectedPatientId}
                 selectedPatientData={selectedPatientData}
@@ -238,9 +236,6 @@ export default function DoctorPage({ username, onLogout }) {
       {/* OVERLAY FORMS COORDINATOR */}
       <DoctorForms
         patients={patients}
-        medications={medications}
-        rooms={rooms}
-        activeDoctor={activeDoctor}
         showAppointmentModal={showAppointmentModal}
         setShowAppointmentModal={setShowAppointmentModal}
         newApptForm={newApptForm}

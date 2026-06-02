@@ -1,6 +1,6 @@
 import React from "react";
 import DoctorDashboard from "../doctorPage/DoctorPage.jsx";
-import PatientDashboard from "../dashboard/PatientDashboard.jsx";
+import PatientDashboard from "../PatientPage/PatientPage.jsx";
 import NurseDashboard from "../dashboard/NurseDashboard.jsx";
 import AdminDashboard from "../dashboard/AdminDashboard.jsx";
 

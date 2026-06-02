@@ -6,7 +6,7 @@ import AppointmentsTab from "./AppointmentsTab";
 import PrescriptionsTab from "./PrescriptionsTab";
 import SurgeriesTab from "./SurgeriesTab";
 import BillsPaymentsTab from "./BillsPaymentsTab";
-import "./doctorPage/index.css"
+import "../doctorPage/index.css"
 import { 
   LayoutDashboard, 
   Calendar, 

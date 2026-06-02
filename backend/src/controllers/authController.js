@@ -18,35 +18,6 @@ exports.register = async (req, res, next) => {
     }
 };
 
-exports.login = async (req, res, next) => {
-    try {
-        const { Username, Password } = req.body;
-
-        if (!Username || !Password) {
-            return sendError(res, 'Username and Password are required', 400);
-        }
-
-        const user = await authService.findUserByUsername(Username);
-        if (!user) {
-            return sendError(res, 'Invalid username or password', 401);
-        }
-
-        const isPasswordValid = await bcrypt.compare(Password, user.PasswordHash);
-        if (!isPasswordValid) {
-            return sendError(res, 'Invalid username or password', 401);
-        }
-
-        const token = jwt.sign(
-            { UserID: user.UserID, Username: user.Username, UserRole: user.UserRole },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        sendSuccess(res, 'Login successful', { token, UserID: user.UserID, Username: user.Username, UserRole: user.UserRole }, 200);
-    } catch (error) {
-        next(error);
-    }
-};
 
 // New method: Verify username exists in database
 exports.verifyUsername = async (req, res, next) => {
@@ -63,7 +34,6 @@ exports.verifyUsername = async (req, res, next) => {
             return sendError(res, 'Username not found', 404);
         }
 
-        console.log("User row:", user);
         sendSuccess(res, 'Username verified', { username: user.Username, UserID: user.UserID }, 200);
     } catch (error) {
         next(error);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import LoginCard from "./LoginCard.jsx";
 import RoleRouter from "./RoleRouter.jsx";
 import PageLoader from "./PageLoader.jsx";
+import "./login-page-styles.css";
 import { 
   Heart, 
   Loader2, 
