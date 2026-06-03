@@ -1,4 +1,4 @@
-cconst db = require('../config/db');
+const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 // 1. Logic to create a user account with hashed password
