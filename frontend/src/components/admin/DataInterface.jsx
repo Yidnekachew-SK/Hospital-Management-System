@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // Manages table display and ensures row values match the update panel options
-const DataInterface = ({ current, activeTab, isReadOnly, onAdd, onEdit }) => {
+const DataInterface = ({ current, activeTab, isReadOnly, onAdd, onEdit, dbData, isLoading }) => {
   const [subTab, setSubTab] = useState('All');
 
   // Logic for context-aware status and role badges
@@ -81,30 +81,37 @@ const DataInterface = ({ current, activeTab, isReadOnly, onAdd, onEdit }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-medium">
-              {[0, 1, 2, 3, 4].map(i => (
-                <tr key={i} className="hover:bg-slate-50/50 transition-all">
-                  {current.cols.map((c, idx) => (
-                    <td key={idx} className="px-6 py-5 w-[180px] min-w-[180px]">
-                      {/* Detect status, occupancy, or role columns for the badge component */}
-                      {c.toLowerCase().includes('status') || c === 'Occupancy' || c === 'Role' ? (
-                        <StatusBadge 
-                          value={getMockStatus(i)} 
-                          context={activeTab} 
-                        />
-                      ) : (
-                        <span className={`text-xs ${idx === 0 ? 'font-mono text-[#008564] font-bold' : 'font-medium text-slate-600'}`}>
-                          {idx === 0 ? `${activeTab.substring(0,2).toUpperCase()}-${i+1}01` : `Data_Point`}
-                        </span>
-                      )}
-                    </td>
-                  ))}
-                  {!isReadOnly && (
-                    <td className="px-6 py-5 w-[120px] min-w-[120px] text-right">
-                      <button onClick={onEdit} className="text-[#008564] text-[10px] font-black uppercase hover:underline tracking-tighter">Update</button>
-                    </td>
-                  )}
-                </tr>
-              ))}
+              {isLoading ? (
+                <tr><td colSpan={current.cols.length + 1} className="p-10 text-center text-slate-400 italic">Connecting to Hospital Database...</td></tr>
+              ) : dbData.length === 0 ? (
+                <tr><td colSpan={current.cols.length + 1} className="p-10 text-center text-slate-400">No relational records found for {activeTab}.</td></tr>
+              ) : (
+                dbData.map((record, rowIndex) => (
+                  <tr key={record.id || rowIndex} className="hover:bg-slate-50/50 transition-all">
+                    {current.cols.map((col, colIndex) => {
+                      // Pulls the value from the database object using the column name as the key
+                      const cellValue = record[col] || record[col.replace(' ', '')] || "—";
+
+                      return (
+                        <td key={colIndex} className="px-6 py-5 w-[180px] min-w-[180px]">
+                          {col.toLowerCase().includes('status') || col === 'Occupancy' ? (
+                            <StatusBadge value={cellValue} context={activeTab} />
+                          ) : (
+                            <span className={`text-xs ${colIndex === 0 ? 'font-mono text-[#008564] font-bold' : 'text-slate-600'}`}>
+                              {cellValue}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    {!isReadOnly && (
+                      <td className="px-6 py-5 w-[120px] min-w-[120px] text-right">
+                        <button onClick={onEdit} className="text-[#008564] text-[10px] font-black uppercase hover:underline">Update</button>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

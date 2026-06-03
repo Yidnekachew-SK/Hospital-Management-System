@@ -1,3 +1,5 @@
+import api, { getEndpoint } from '../utils/api';
+import { useEffect } from 'react';
 import React, { useState } from 'react';
 import Sidebar from '../components/admin/Sidebar';
 import MetricHub from '../components/admin/MetricHub';
@@ -13,6 +15,31 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
   const [showForm, setShowForm] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
+
+  const [dbData, setDbData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchDatabaseRecords = async () => {
+    const path = getEndpoint(activeTab);
+    if (!path || activeTab === 'Overview') return;
+
+    setLoading(true);
+    try {
+      const response = await api.get(path);
+      // Backend usually sends data inside a 'data' field or directly as an array
+      setDbData(response.data.data || response.data || []);
+    } catch (error) {
+      console.error("Database connection error:", error);
+      setDbData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Trigger fetch every time the user clicks a new tab
+  useEffect(() => {
+    fetchDatabaseRecords();
+  }, [activeTab]);
 
   // Relational schema definitions mapping 1-to-1 with the database model
   const schema = {
@@ -99,7 +126,15 @@ const AdminDashboard = () => {
           ) : (
             <div className="space-y-6">
               <MetricHub metrics={metrics} isMini={true} onNavigate={setActiveTab} />
-              <DataInterface current={current} activeTab={activeTab} isReadOnly={isReadOnly} onAdd={triggerInsert} onEdit={triggerUpdate} />
+              <DataInterface 
+                current={current} 
+                activeTab={activeTab} 
+                isReadOnly={isReadOnly} 
+                onAdd={triggerInsert} 
+                onEdit={triggerUpdate} 
+                dbData={dbData} 
+                isLoading={loading} 
+              />
             </div>
           )}
         </div>
