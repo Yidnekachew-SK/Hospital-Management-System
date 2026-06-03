@@ -1,55 +1,28 @@
 import React, { useState } from 'react';
 
-// Manages table display and ensures row values match the update panel options
+const StatusBadge = ({ value, context }) => {
+  const colorMap = {
+    'ACTIVE': 'bg-emerald-50 text-emerald-600',
+    'COMPLETED': 'bg-emerald-50 text-emerald-600',
+    'OCCUPIED': 'bg-emerald-50 text-emerald-600',
+    'AVAILABLE': 'bg-blue-50 text-blue-600',
+    'ON LEAVE': 'bg-blue-50 text-blue-600',
+    'PENDING': 'bg-amber-50 text-amber-600',
+    'MAINTENANCE': 'bg-amber-50 text-amber-600',
+    'TERMINATED': 'bg-red-50 text-red-600',
+    'FAILED': 'bg-red-50 text-red-600'
+  };
+
+  return (
+    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold ${colorMap[value] || 'bg-slate-50 text-slate-400'}`}>
+      <div className="w-1 h-1 rounded-full bg-current" />
+      {value}
+    </div>
+  );
+};
+
 const DataInterface = ({ current, activeTab, isReadOnly, onAdd, onEdit, dbData, isLoading }) => {
   const [subTab, setSubTab] = useState('All');
-
-  // Logic for context-aware status and role badges
-  const StatusBadge = ({ value, context }) => {
-    const colorMap = {
-      // Employees & Rooms
-      'ACTIVE': 'bg-emerald-50 text-emerald-600',
-      'COMPLETED': 'bg-emerald-50 text-emerald-600',
-      'OCCUPIED': 'bg-emerald-50 text-emerald-600',
-      'AVAILABLE': 'bg-blue-50 text-blue-600',
-      'ON LEAVE': 'bg-blue-50 text-blue-600',
-      'PENDING': 'bg-amber-50 text-amber-600',
-      'MAINTENANCE': 'bg-amber-50 text-amber-600',
-      'TERMINATED': 'bg-red-50 text-red-600',
-      'FAILED': 'bg-red-50 text-red-600',
-      // UserAccounts Roles
-      'Admin': 'bg-emerald-50 text-emerald-600',
-      'Doctor': 'bg-blue-50 text-blue-600',
-      'Nurse': 'bg-blue-50 text-blue-600',
-      'Staff': 'bg-amber-50 text-amber-600'
-    };
-
-    return (
-      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold ${colorMap[value] || 'bg-slate-50 text-slate-400'}`}>
-        <div className="w-1 h-1 rounded-full bg-current" />
-        {value}
-      </div>
-    );
-  };
-
-  // Logic to provide context-correct data for the role/status columns
-  const getMockStatus = (index) => {
-    if (activeTab === 'Employees') {
-      const states = ['ACTIVE', 'ON LEAVE', 'TERMINATED', 'PENDING', 'ACTIVE'];
-      return states[index];
-    }
-    if (activeTab === 'Rooms') {
-      const states = ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'OCCUPIED', 'AVAILABLE'];
-      return states[index];
-    }
-    // Match the specific roles from the UserAccounts update panel
-    if (activeTab === 'UserAccounts') {
-      const roles = ['Admin', 'Doctor', 'Nurse', 'Staff', 'Staff'];
-      return roles[index];
-    }
-    const states = ['PENDING', 'COMPLETED', 'FAILED', 'COMPLETED', 'PENDING'];
-    return states[index];
-  };
 
   return (
     <div className="space-y-6">
@@ -65,40 +38,37 @@ const DataInterface = ({ current, activeTab, isReadOnly, onAdd, onEdit, dbData, 
         <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-gradient-to-r from-white to-slate-50/30 shrink-0">
           <div>
             <h3 className="text-xl font-bold text-slate-900">{activeTab === 'Employees' && subTab !== 'All' ? `${subTab} Directory` : `${activeTab} Management`}</h3>
-            <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest italic">Database relational records</p>
+            <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest italic">Relational Integrity Verified</p>
           </div>
-          {!isReadOnly && <button onClick={onAdd} className="bg-[#008564] text-white px-6 py-3 rounded-2xl text-[10px] font-black tracking-widest transition-all hover:brightness-110 active:scale-95 uppercase">Insert {activeTab}</button>}
+          {!isReadOnly && <button onClick={onAdd} className="bg-[#008564] text-white px-6 py-3 rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all hover:brightness-110 active:scale-95">Insert {activeTab}</button>}
         </div>
 
         <div className="p-6 overflow-x-auto custom-scrollbar">
           <table className="w-max text-left border-separate border-spacing-x-0">
             <thead>
               <tr className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                {current.cols.map(c => (
-                  <th key={c} className="px-6 py-4 w-[180px] min-w-[180px]">{c}</th>
-                ))}
+                {current.cols.map(c => <th key={c} className="px-6 py-4 w-[180px] min-w-[180px]">{c}</th>)}
                 {!isReadOnly && <th className="px-6 py-4 w-[120px] min-w-[120px] text-right">Operations</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-medium">
               {isLoading ? (
-                <tr><td colSpan={current.cols.length + 1} className="p-10 text-center text-slate-400 italic">Connecting to Hospital Database...</td></tr>
-              ) : dbData.length === 0 ? (
-                <tr><td colSpan={current.cols.length + 1} className="p-10 text-center text-slate-400">No relational records found for {activeTab}.</td></tr>
-              ) : (
-                dbData.map((record, rowIndex) => (
-                  <tr key={record.id || rowIndex} className="hover:bg-slate-50/50 transition-all">
-                    {current.cols.map((col, colIndex) => {
-                      // Pulls the value from the database object using the column name as the key
-                      const cellValue = record[col] || record[col.replace(' ', '')] || "—";
+                <tr><td colSpan={current.cols.length + 1} className="p-10 text-center text-slate-400 italic">Syncing with database...</td></tr>
+              ) : dbData.length > 0 ? (
+                dbData.map((record, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-all">
+                    {current.cols.map((colName, idx) => {
+                      const searchKey = colName.toLowerCase().replace(/\s/g, '');
+                      const dbKey = Object.keys(record).find(k => k.toLowerCase().replace(/_/g, '') === searchKey);
+                      const displayValue = dbKey ? record[dbKey] : "—";
 
                       return (
-                        <td key={colIndex} className="px-6 py-5 w-[180px] min-w-[180px]">
-                          {col.toLowerCase().includes('status') || col === 'Occupancy' ? (
-                            <StatusBadge value={cellValue} context={activeTab} />
+                        <td key={idx} className="px-6 py-5 w-[180px] min-w-[180px]">
+                          {colName.toLowerCase().includes('status') || colName === 'Occupancy' || colName === 'Role' ? (
+                            <StatusBadge value={displayValue} context={activeTab} />
                           ) : (
-                            <span className={`text-xs ${colIndex === 0 ? 'font-mono text-[#008564] font-bold' : 'text-slate-600'}`}>
-                              {cellValue}
+                            <span className={`text-xs ${idx === 0 ? 'font-mono text-[#008564] font-bold' : 'text-slate-600'}`}>
+                              {displayValue}
                             </span>
                           )}
                         </td>
@@ -111,6 +81,8 @@ const DataInterface = ({ current, activeTab, isReadOnly, onAdd, onEdit, dbData, 
                     )}
                   </tr>
                 ))
+              ) : (
+                <tr><td colSpan={current.cols.length + 1} className="p-10 text-center text-slate-400 uppercase font-bold text-xs tracking-widest">No relational records found for {activeTab}.</td></tr>
               )}
             </tbody>
           </table>

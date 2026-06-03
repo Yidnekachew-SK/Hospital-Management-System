@@ -91,6 +91,7 @@ export default function LoginCard({ onLoginSuccess }) {
         
         // Brief pleasant delay to show completion animation
         setTimeout(() => {
+          localStorage.setItem('token', passwordData.data.token);
           onLoginSuccess({
             username: username.trim(),
             role: passwordData.data.role, 

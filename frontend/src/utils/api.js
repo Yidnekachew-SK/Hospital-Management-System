@@ -1,10 +1,19 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // This ensures your Admin Dashboard looks at the Backend, not itself
-  baseURL: 'http://localhosi/v1',
+  baseURL: 'http://127.0.0.1:5000/api/v1',
 });
 
+// Automatically attaches the JWT Token from storage to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Strict mapping to the paths provided in your friend's Postman JSON
 export const getEndpoint = (tab) => {
   const map = {
     'Employees': '/employees/',
@@ -13,9 +22,10 @@ export const getEndpoint = (tab) => {
     'Wards': '/clinic/wards',
     'Rooms': '/clinic/rooms',
     'Patients': '/patients/',
-    'Insurance': '/patients/insurance',
+    'Insurance': '/patients/insurance', // Postman says singular
     'Billing': '/finance/bills',
-    'Logs': '/auth/system-logs'
+    'Logs': '/auth/system-logs',      // Matches Postman JSON
+    'ActivityLog': '/auth/activity-logs'
   };
   return map[tab] || null;
 };
