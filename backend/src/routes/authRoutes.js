@@ -6,7 +6,7 @@ const { verifyToken, checkRole } = require('../middleware/authMiddleware');
 console.log("Checking Auth Controller Import:", authController);
 
 router.post('/register', authController.register);
-router.post('/login', authController.login);
+//router.post('/login', authController.login);
 
 // New endpoints for frontend verification steps
 router.get('/verify-username/:username', authController.verifyUsername);

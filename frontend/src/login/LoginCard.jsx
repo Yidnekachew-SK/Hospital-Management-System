@@ -84,7 +84,9 @@ export default function LoginCard({ onLoginSuccess }) {
       }
 
       const passwordData = await passwordResponse.json();
-      
+      const Role = passwordData.data.UserRole;
+      console.log("role is " + Role)
+
       if (passwordData.data.match) {
         setStep("success");
         console.log("[Authentication Success] Credentials verified. Session successfully authorized.");
@@ -93,7 +95,8 @@ export default function LoginCard({ onLoginSuccess }) {
         setTimeout(() => {
           onLoginSuccess({
             username: username.trim(),
-            loginTime: new Date().toLocaleTimeString()
+            loginTime: new Date().toLocaleTimeString(),
+            userRole: Role
           });
         }, 1000);
       } else {
