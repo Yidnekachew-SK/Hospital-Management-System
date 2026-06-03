@@ -62,6 +62,7 @@ exports.verifyPassword = async (req, res, next) => {
             return sendError(res, 'Invalid password', 401);
         }
 
+
         sendSuccess(res, 'Password verified', { match: true, UserID: user.UserID, UserRole: user.UserRole }, 200);
     } catch (error) {
         next(error);
