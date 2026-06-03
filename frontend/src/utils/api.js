@@ -1,16 +1,12 @@
 import axios from 'axios';
 
-// Centralized configuration for backend connection
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api/v1',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  // This ensures your Admin Dashboard looks at the Backend, not itself
+  baseURL: 'http://localhosi/v1',
 });
 
-// Helper to map UI names to exact backend paths from Postman JSON
 export const getEndpoint = (tab) => {
-  const endpoints = {
+  const map = {
     'Employees': '/employees/',
     'UserAccounts': '/auth/user-accounts',
     'Departments': '/employees/departments',
@@ -21,7 +17,7 @@ export const getEndpoint = (tab) => {
     'Billing': '/finance/bills',
     'Logs': '/auth/system-logs'
   };
-  return endpoints[tab] || null;
+  return map[tab] || null;
 };
 
 export default api;

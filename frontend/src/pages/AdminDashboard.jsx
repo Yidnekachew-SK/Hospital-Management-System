@@ -1,9 +1,8 @@
+import React, { useState, useEffect } from 'react';
 import api, { getEndpoint } from '../utils/api';
-import { useEffect } from 'react';
-import React, { useState } from 'react';
-import Sidebar from '../components/admin/Sidebar';
-import MetricHub from '../components/admin/MetricHub';
-import DataInterface from '../components/admin/DataInterface';
+import Sidebar from '../components/admin/Sidebar.jsx';
+import MetricHub from '../components/admin/MetricHub.jsx';
+import DataInterface from '../components/admin/DataInterface.jsx';
 
 const Icons = {
   Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="2" strokeLinecap="round"/></svg>,

@@ -1,27 +1,17 @@
-import React from "react";
-import DoctorDashboard from "../doctorPage/DoctorPage.jsx";
-import PatientDashboard from "../PatientPage/PatientPage.jsx";
-import NurseDashboard from "../dashboard/NurseDashboard.jsx";
-import AdminDashboard from "../dashboard/AdminDashboard.jsx";
+import React from 'react';
+import AdminDashboard from "../adminPage/AdminDashboard.jsx";
+import PatientPage from "../PatientPage/PatientPage.jsx";
 
-/**
- * RoleRouter component inspects the current user's authenticated role 
- * and guides them to their corresponding dashboard page. 
- */
 export default function RoleRouter({ currentUser, onLogout }) {
   if (!currentUser) return null;
 
-  switch (currentUser.userRole?.toLowerCase()) {
+  // Reads the 'role' we added in Step 2 and Step 3
+  const role = (currentUser.role || "").toLowerCase();
+
+  switch (role) {
     case "admin":
-      return <AdminDashboard username={currentUser.username} onLogout={onLogout} />;
-    case "doctor":
-      return <DoctorDashboard username={currentUser.username} onLogout={onLogout} />;
-    case "nurse":
-      return <NurseDashboard username={currentUser.username} onLogout={onLogout} />;
-    case "patient":
-      return <PatientDashboard username={currentUser.username} onLogout={onLogout} />;
+      return <AdminDashboard onLogout={onLogout} />;
     default:
-      // Fallback workspace
-      return <PatientDashboard username={currentUser.username} onLogout={onLogout} />;
+      return <PatientPage onLogout={onLogout} />;
   }
 }
