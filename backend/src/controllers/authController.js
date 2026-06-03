@@ -34,6 +34,7 @@ exports.verifyUsername = async (req, res, next) => {
             return sendError(res, 'Username not found', 404);
         }
 
+        console.log(user)
         sendSuccess(res, 'Username verified', { username: user.Username, UserID: user.UserID }, 200);
     } catch (error) {
         next(error);
@@ -50,6 +51,8 @@ exports.verifyPassword = async (req, res, next) => {
         }
 
         const user = await authService.findUserByUsername(username);
+        console.log('user debuging ---------')
+        console.log(user);
         if (!user) {
             return sendError(res, 'Username not found', 404);
         }
@@ -59,7 +62,8 @@ exports.verifyPassword = async (req, res, next) => {
             return sendError(res, 'Invalid password', 401);
         }
 
-        sendSuccess(res, 'Password verified', { match: true, UserID: user.UserID }, 200);
+
+        sendSuccess(res, 'Password verified', { match: true, UserID: user.UserID, UserRole: user.UserRole }, 200);
     } catch (error) {
         next(error);
     }
