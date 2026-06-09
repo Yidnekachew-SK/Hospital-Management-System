@@ -33,6 +33,21 @@ exports.createEmployee = async (req, res, next) => {
             return sendError(res, 'Required fields are missing', 400);
         }
 
+        // Validate Gender (must be 'M' or 'F')
+        if (!['M', 'F'].includes(Gender)) {
+            return sendError(res, 'Gender must be "M" or "F"', 400);
+        }
+
+        // Validate NationalID length (max 16 characters)
+        if (NationalID.length > 16) {
+            return sendError(res, 'NationalID must not exceed 16 characters', 400);
+        }
+
+        // Validate Salary (must be >= 0)
+        if (isNaN(Salary) || Salary < 0) {
+            return sendError(res, 'Salary must be a valid number >= 0', 400);
+        }
+
         const result = await employeeService.addEmployee(EmployeeID, NationalID, EmployeeName, Gender, Phone, Email, Address, DeptID, Salary);
         sendSuccess(res, 'Employee created successfully', { EmployeeID, NationalID, EmployeeName, Gender, Phone, Email, Address, DeptID, Salary }, 201);
     } catch (error) {
@@ -55,6 +70,11 @@ exports.createDoctor = async (req, res, next) => {
 
         if (!EmployeeID || !Specialty || !LicenseNumber) {
             return sendError(res, 'EmployeeID, Specialty, and LicenseNumber are required', 400);
+        }
+
+        // Validate LicenseNumber length (max 15 characters)
+        if (LicenseNumber.length > 15) {
+            return sendError(res, 'LicenseNumber must not exceed 15 characters', 400);
         }
 
         const result = await employeeService.addDoctor(EmployeeID, Specialty, LicenseNumber);

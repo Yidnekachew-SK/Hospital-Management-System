@@ -5,14 +5,52 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res, next) => {
     try {
+        const { EmployeeID, PatientID, Username, PasswordHash, UserRole } = req.body;
+
+        // Ensure either EmployeeID or PatientID is provided, but not both
+        if ((EmployeeID && PatientID) || (!EmployeeID && !PatientID)) {
+            return sendError(res, 'User must have either EmployeeID or PatientID, but not both', 400);
+        }
+
+        if (!Username || !PasswordHash || !UserRole) {
+            return sendError(res, 'Username, PasswordHash, and UserRole are required', 400);
+        }
+
+        const userId = await authService.addUserAccount(EmployeeID || null, PatientID || null, Username, PasswordHash, UserRole);
+        sendSuccess(res, 'User account created successfully', { UserID: userId, EmployeeID: EmployeeID || null, PatientID: PatientID || null, Username, UserRole }, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// Register Employee User
+exports.registerEmployee = async (req, res, next) => {
+    try {
         const { EmployeeID, Username, PasswordHash, UserRole } = req.body;
 
         if (!EmployeeID || !Username || !PasswordHash || !UserRole) {
             return sendError(res, 'EmployeeID, Username, PasswordHash, and UserRole are required', 400);
         }
 
-        const userId = await authService.addUserAccount(EmployeeID, Username, PasswordHash, UserRole);
-        sendSuccess(res, 'User account created successfully', { UserID: userId, EmployeeID, Username, UserRole }, 201);
+        const userId = await authService.addUserAccount(EmployeeID, null, Username, PasswordHash, UserRole);
+        sendSuccess(res, 'Employee user account created successfully', { UserID: userId, EmployeeID, Username, UserRole }, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Register Patient User
+exports.registerPatient = async (req, res, next) => {
+    try {
+        const { PatientID, Username, PasswordHash, UserRole } = req.body;
+
+        if (!PatientID || !Username || !PasswordHash || !UserRole) {
+            return sendError(res, 'PatientID, Username, PasswordHash, and UserRole are required', 400);
+        }
+
+        const userId = await authService.addUserAccount(null, PatientID, Username, PasswordHash, UserRole);
+        sendSuccess(res, 'Patient user account created successfully', { UserID: userId, PatientID, Username, UserRole }, 201);
     } catch (error) {
         next(error);
     }

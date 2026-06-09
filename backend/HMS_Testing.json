@@ -1,61 +1,357 @@
-{
+﻿{
   "info": {
-    "_postman_id": "a676c0df-2ce2-4125-991e-b2795a1b9b94",
-    "name": "Hospital Management System — Ultimate Audit",
-    "description": "Complete test suite for the HMS Backend API. 10 module folders · 80+ endpoints · JWT auto-capture on login. Set base_url = http://localhost:5000/api/v1 before running.",
+    "_postman_id": "hms-corrected-2025-audit",
+    "name": "Hospital Management System — Corrected Audit",
+    "description": "Complete test suite for the HMS Backend API. Run folders 01–10 top-to-bottom. base_url = http://localhost:5000/api/v1. JWT and all auto-increment IDs are captured automatically.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:5000/api/v1",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string",
-      "description": "Auto-populated by the Login request test script."
-    }
+    { "key": "base_url",          "value": "http://localhost:5000/api/v1", "type": "string" },
+    { "key": "token",             "value": "", "type": "string",  "description": "Auto-populated by Login." },
+    { "key": "current_dept_id",   "value": "", "type": "string",  "description": "Auto-populated by Create Department." },
+    { "key": "current_ward_id",   "value": "", "type": "string",  "description": "Auto-populated by Create Ward." },
+    { "key": "current_room_id",   "value": "", "type": "string",  "description": "Auto-populated by Create Room." },
+    { "key": "current_employee_id","value": "E001", "type": "string", "description": "Set once; reused by Doctor/Nurse/Staff/Shift." },
+    { "key": "current_patient_id","value": "", "type": "string",  "description": "Auto-populated by Create Patient." },
+    { "key": "current_appointment_id","value": "", "type": "string", "description": "Auto-populated by Create Appointment." },
+    { "key": "current_admission_id","value": "", "type": "string", "description": "Auto-populated by Create Admission." },
+    { "key": "current_medication_id","value": "", "type": "string","description": "Auto-populated by Create Medication." },
+    { "key": "current_prescription_id","value": "","type": "string","description": "Auto-populated by Create Prescription." },
+    { "key": "current_test_id",   "value": "", "type": "string",  "description": "Auto-populated by Request Lab Test." },
+    { "key": "current_bill_id",   "value": "", "type": "string",  "description": "Auto-populated by Create Bill." },
+    { "key": "current_supplier_id","value": "","type": "string",  "description": "Auto-populated by Create Supplier." },
+    { "key": "current_record_id", "value": "", "type": "string",  "description": "Auto-populated by Create Medical Record." }
   ],
   "item": [
+
     {
-      "name": "Auth",
+      "name": "01. Infrastructure",
       "item": [
         {
-          "name": "Register User",
+          "name": "01-A Create Department",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.DeptID) {",
+                  "    pm.collectionVariables.set('current_dept_id', json.data.DeptID);",
+                  "    console.log('DeptID saved:', json.data.DeptID);",
+                  "} else { console.error('Create Department failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/register",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "register"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"Username\": \"dr.smith\",\n  \"PasswordHash\": \"SecurePass123!\",\n  \"UserRole\": \"doctor\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"DeptName\": \"Cardiology\",\n  \"Building\": \"Building A\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/departments",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "departments"]
             }
           },
           "response": []
         },
         {
-          "name": "Login (Auto-save Token)",
+          "name": "01-B Create Ward",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.WardID) {",
+                  "    pm.collectionVariables.set('current_ward_id', json.data.WardID);",
+                  "    console.log('WardID saved:', json.data.WardID);",
+                  "} else { console.error('Create Ward failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"WardName\": \"Cardiac Ward\",\n  \"DeptID\": {{current_dept_id}},\n  \"Capacity\": 30\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/wards",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "wards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01-C Create Room",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.RoomID) {",
+                  "    pm.collectionVariables.set('current_room_id', json.data.RoomID);",
+                  "    console.log('RoomID saved:', json.data.RoomID);",
+                  "} else { console.error('Create Room failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"WardID\": {{current_ward_id}},\n  \"RoomNumber\": \"R-101\",\n  \"RoomType\": \"General\",\n  \"MaxCapacity\": 4\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "rooms"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01-D Get All Departments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/departments",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "departments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "02. Staffing",
+      "item": [
+        {
+          "name": "02-A Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"NationalID\": \"ETH1234567890\",\n  \"EmployeeName\": \"Dr. John Smith\",\n  \"Gender\": \"M\",\n  \"Phone\": \"251911000001\",\n  \"Email\": \"john.smith@hospital.com\",\n  \"Address\": \"Addis Ababa, Ethiopia\",\n  \"DeptID\": {{current_dept_id}},\n  \"Salary\": 5000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/",
+              "host": ["{{base_url}}"],
+              "path": ["employees", ""]
+            },
+            "description": "NationalID max 16 chars. Gender must be 'M' or 'F'. Salary >= 0."
+          },
+          "response": []
+        },
+        {
+          "name": "02-B Register Employee as Doctor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"Specialty\": \"Cardiology\",\n  \"LicenseNumber\": \"LIC12345678901\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/doctors",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "doctors"]
+            },
+            "description": "LicenseNumber max 15 characters. EmployeeID must already exist in Employees."
+          },
+          "response": []
+        },
+        {
+          "name": "02-C Create Nurse Employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"N001\",\n  \"NationalID\": \"ETH0000000001\",\n  \"EmployeeName\": \"Nurse Sara Alemu\",\n  \"Gender\": \"F\",\n  \"Phone\": \"251911000002\",\n  \"Email\": \"sara.alemu@hospital.com\",\n  \"Address\": \"Addis Ababa, Ethiopia\",\n  \"DeptID\": {{current_dept_id}},\n  \"Salary\": 3000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/",
+              "host": ["{{base_url}}"],
+              "path": ["employees", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-D Register Employee as Nurse",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"N001\",\n  \"Certification\": \"RN\",\n  \"AssignedWard\": {{current_ward_id}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/nurses",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "nurses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-E Create Staff Employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"S001\",\n  \"NationalID\": \"ETH0000000002\",\n  \"EmployeeName\": \"Admin Tigist Bekele\",\n  \"Gender\": \"F\",\n  \"Phone\": \"251911000003\",\n  \"Email\": \"tigist.bekele@hospital.com\",\n  \"Address\": \"Addis Ababa, Ethiopia\",\n  \"DeptID\": {{current_dept_id}},\n  \"Salary\": 2500\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/",
+              "host": ["{{base_url}}"],
+              "path": ["employees", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-F Register Employee as Staff",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"S001\",\n  \"StaffRole\": \"Administrative\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/staff",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "staff"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-G Get All Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/",
+              "host": ["{{base_url}}"],
+              "path": ["employees", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-H Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/doctors",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "doctors"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-I Get All Nurses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/nurses",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "nurses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02-J Get All Staff",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/staff",
+              "host": ["{{base_url}}"],
+              "path": ["employees", "staff"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "03. Auth",
+      "item": [
+        {
+          "name": "03-A Register Employee User (Doctor)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"Username\": \"dr.smith\",\n  \"PasswordHash\": \"SecurePass123!\",\n  \"UserRole\": \"doctor\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/employee",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register", "employee"]
+            },
+            "description": "XOR rule: EmployeeID is set, PatientID must be NULL (handled server-side)."
+          },
+          "response": []
+        },
+        {
+          "name": "03-B Register Employee User (Staff)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"S001\",\n  \"Username\": \"admin.tigist\",\n  \"PasswordHash\": \"StaffPass123!\",\n  \"UserRole\": \"staff\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/employee",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register", "employee"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03-C Login (Auto-save Token)",
           "event": [
             {
               "listen": "test",
@@ -65,9 +361,9 @@
                   "var json = pm.response.json();",
                   "if (json.success && json.data && json.data.token) {",
                   "    pm.collectionVariables.set('token', json.data.token);",
-                  "    console.log('Token saved to collection variable: token');",
+                  "    console.log('JWT token saved to collection variable: token');",
                   "} else {",
-                  "    console.error('Login failed or token missing:', json.message);",
+                  "    console.error('Login failed or token missing:', JSON.stringify(json));",
                   "}"
                 ]
               }
@@ -75,3665 +371,1018 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"Username\": \"dr.smith\",\n  \"Password\": \"SecurePass123!\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
             },
             "description": "Logs in and automatically saves the JWT to the `token` collection variable."
           },
           "response": []
         },
         {
-          "name": "Get User by Username",
+          "name": "03-D Get User by Username",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/user/:Username",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "user",
-                ":Username"
-              ]
-            },
+            "header": [],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
-            "description": "Fetches full user record including PasswordHash. Params: Username=dr.smith"
-          },
-          "response": []
-        },
-        {
-          "name": "Update User Account",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "url": {
-              "raw": "{{base_url}}/auth/user/:UserID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "user",
-                ":UserID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"Username\": \"dr.smith.updated\",\n  \"UserRole\": \"admin\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{{base_url}}/auth/user/dr.smith",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "user", "dr.smith"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All User Accounts (Admin)",
+          "name": "03-E Get All User Accounts (Admin)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/auth/user-accounts",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "user-accounts"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Log Activity",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/activity-logs",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "activity-logs"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"UserID\": 1,\n  \"LoginTime\": \"2025-05-31T08:00:00\",\n  \"LogoutTime\": \"2025-05-31T17:00:00\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Activity Logs",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/activity-logs",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "activity-logs"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create System Log (Admin)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/system-logs",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "system-logs"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"TableName\": \"Patients\",\n  \"RecordID\": 1,\n  \"ActionType\": \"INSERT\",\n  \"ActionDate\": \"2025-05-31T09:30:00\",\n  \"UserID\": 1,\n  \"Description\": \"New patient registered\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get System Logs (Admin)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/system-logs",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "system-logs"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["auth", "user-accounts"]
             }
           },
           "response": []
         }
-      ],
-      "description": "User account management, JWT login with auto token capture, and audit logging."
+      ]
     },
+
     {
-      "name": "Employees & HR",
+      "name": "04. Patients",
       "item": [
         {
-          "name": "Create Department",
+          "name": "04-A Create Insurance Provider",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.InsuranceID) {",
+                  "    pm.collectionVariables.set('current_insurance_id', json.data.InsuranceID);",
+                  "    console.log('InsuranceID saved:', json.data.InsuranceID);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/departments",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "departments"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"DeptName\": \"Cardiology\",\n  \"Building\": \"Block A\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Departments",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "raw": "{\n  \"ProviderName\": \"EthioCare Insurance\",\n  \"PolicyNumber\": \"POL-ETH-20250001\",\n  \"CoverageDetails\": \"Full inpatient and outpatient coverage\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
-              "raw": "{{base_url}}/employees/departments",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "departments"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "raw": "{{base_url}}/finance/insurance",
+              "host": ["{{base_url}}"],
+              "path": ["finance", "insurance"]
             }
           },
           "response": []
         },
         {
-          "name": "Update Department",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/departments/:DeptID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "departments",
-                ":DeptID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"DeptName\": \"Cardiology & Vascular\",\n  \"Building\": \"Block A\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+          "name": "04-B Create Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.PatientID) {",
+                  "    pm.collectionVariables.set('current_patient_id', json.data.PatientID);",
+                  "    console.log('PatientID saved:', json.data.PatientID);",
+                  "} else {",
+                  "    console.error('Create Patient failed or PatientID missing:', JSON.stringify(json));",
+                  "}"
+                ]
               }
             }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Employee",
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"NationalID\": \"NAT-001-2025\",\n  \"EmployeeName\": \"Dr. James Smith\",\n  \"Gender\": \"M\",\n  \"Phone\": \"251911000001\",\n  \"Email\": \"j.smith@hospital.com\",\n  \"Address\": \"123 Medical Ave, Addis Ababa\",\n  \"DeptID\": 1,\n  \"Salary\": 85000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Employees",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees"
-              ]
+              "raw": "{\n  \"NationalID\": \"ETH-NAT-88001\",\n  \"PatientName\": \"Abebe Bekele\",\n  \"DOB_DATE\": \"1988-03-15\",\n  \"Gender\": \"M\",\n  \"Region\": \"Addis Ababa\",\n  \"City\": \"Addis Ababa\",\n  \"HouseNumber\": \"H-442\",\n  \"Phone\": \"251911123456\",\n  \"InsuranceID\": {{current_insurance_id}}\n}",
+              "options": { "raw": { "language": "json" } }
             },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Employee Info",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/:EmployeeID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                ":EmployeeID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"EmployeeName\": \"Dr. James A. Smith\",\n  \"Phone\": \"251911000099\",\n  \"Email\": \"j.smith.updated@hospital.com\",\n  \"Address\": \"456 New St, Addis Ababa\",\n  \"Salary\": 90000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Register Doctor",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/doctors",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "doctors"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"Specialty\": \"Cardiology\",\n  \"LicenseNumber\": \"LIC-CARD-9921\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Doctors (Basic)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/doctors",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "doctors"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Doctor Detailed Info (JOIN)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/doctors/:EmployeeID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "doctors",
-                ":EmployeeID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Returns doctor fields joined with Employee fields (Name, Phone, Email, Salary, etc.)."
-          },
-          "response": []
-        },
-        {
-          "name": "Get ALL Doctors Detailed (JOIN)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/doctors/all/detailed",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "doctors",
-                "all",
-                "detailed"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Returns all doctors with full Employee details via SQL JOIN. The key integration test."
-          },
-          "response": []
-        },
-        {
-          "name": "Register Nurse",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/nurses",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "nurses"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"EmployeeID\": \"E002\",\n  \"Certification\": \"RN-Critical Care\",\n  \"AssignedWard\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Nurses (Basic)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/nurses",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "nurses"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Nurse Detailed Info (JOIN)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/nurses/:EmployeeID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "nurses",
-                ":EmployeeID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get ALL Nurses Detailed (JOIN)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/nurses/all/detailed",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "nurses",
-                "all",
-                "detailed"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Register Staff",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/staff",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "staff"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"EmployeeID\": \"E003\",\n  \"StaffRole\": \"Radiographer\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Staff (Basic)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/staff",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "staff"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Staff Detailed Info (JOIN)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/staff/:EmployeeID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "staff",
-                ":EmployeeID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get ALL Staff Detailed (JOIN)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/staff/all/detailed",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "staff",
-                "all",
-                "detailed"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "System-Wide Employee Counts (Aggregate)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/employees/counts/system",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employees",
-                "counts",
-                "system"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Returns TotalEmployees, TotalDoctors, TotalNurses, TotalStaff in a single query."
-          },
-          "response": []
-        }
-      ],
-      "description": "Full HR management including JOIN-powered detail endpoints and system-wide aggregate counts."
-    },
-    {
-      "name": "Patients",
-      "item": [
-        {
-          "name": "Create Insurance",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/patients/insurance",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "patients",
-                "insurance"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"ProviderName\": \"National Health Insurance\",\n  \"PolicyNumber\": \"POL-2025-00123\",\n  \"CoverageDetails\": \"Full inpatient and outpatient coverage\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Insurance",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/patients/insurance",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "patients",
-                "insurance"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Patient",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "url": {
               "raw": "{{base_url}}/patients/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "patients"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["patients", ""]
             },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"NationalID\": \"ETH-NAT-88001\",\n  \"PatientName\": \"Abebe Bekele\",\n  \"DOB_DATE\": \"1988-03-15\",\n  \"Gender\": \"M\",\n  \"Region\": \"Addis Ababa\",\n  \"City\": \"Addis Ababa\",\n  \"HouseNumber\": \"H-442\",\n  \"Phone\": \"251911123456\",\n  \"InsuranceID\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
+            "description": "PatientID is AUTO_INCREMENT. Captured into current_patient_id by the test script."
           },
           "response": []
         },
         {
-          "name": "Get All Patients",
+          "name": "04-C Register Patient User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"Username\": \"patient.abebe\",\n  \"PasswordHash\": \"PatientPass123!\",\n  \"UserRole\": \"patient\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/patient",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register", "patient"]
+            },
+            "description": "XOR rule: PatientID is set, EmployeeID must be NULL (handled server-side)."
+          },
+          "response": []
+        },
+        {
+          "name": "04-D Get All Patients",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/patients/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "patients"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["patients", ""]
             }
           },
           "response": []
         },
         {
-          "name": "Update Patient Details",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/patients/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "patients",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientName\": \"Abebe Bekele\",\n  \"DOB_DATE\": \"1988-03-15\",\n  \"Gender\": \"M\",\n  \"Region\": \"Addis Ababa\",\n  \"City\": \"Addis Ababa\",\n  \"HouseNumber\": \"H-999\",\n  \"Phone\": \"251911999999\",\n  \"InsuranceID\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Global Patient Count (Aggregate)",
+          "name": "04-E Get Patient Count",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/patients/count",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "patients",
-                "count"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Returns TotalPatients — single aggregate value."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Clinic Infrastructure",
-      "item": [
-        {
-          "name": "Create Ward",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/wards",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "wards"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"WardName\": \"ICU Ward A\",\n  \"DeptID\": 1,\n  \"Capacity\": 20\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{base_url}}"],
+              "path": ["patients", "count"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Wards",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/wards",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "wards"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Ward",
+          "name": "04-F Update Patient Details",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/wards/:WardID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "wards",
-                ":WardID"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"WardName\": \"ICU Ward A \\u2014 Expanded\",\n  \"DeptID\": 1,\n  \"Capacity\": 30\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Global Ward Count (Aggregate)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "raw": "{\n  \"PatientName\": \"Abebe Bekele Updated\",\n  \"DOB_DATE\": \"1988-03-15\",\n  \"Gender\": \"M\",\n  \"Region\": \"Addis Ababa\",\n  \"City\": \"Addis Ababa\",\n  \"HouseNumber\": \"H-443\",\n  \"Phone\": \"251911123457\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
-              "raw": "{{base_url}}/clinic/wards/counts",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "wards",
-                "counts"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Wards by Department",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/wards/department/:DeptID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "wards",
-                "department",
-                ":DeptID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Room",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/rooms",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "rooms"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"WardID\": 1,\n  \"RoomNumber\": \"ICU-101\",\n  \"RoomType\": \"Private\",\n  \"MaxCapacity\": 2\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Rooms",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/rooms",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "rooms"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Room",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/rooms/:RoomID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "rooms",
-                ":RoomID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"WardID\": 1,\n  \"RoomNumber\": \"ICU-101\",\n  \"RoomType\": \"Semi-Private\",\n  \"MaxCapacity\": 4\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Room Occupancy Count (Logic)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/rooms/:RoomID/occupancy",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "rooms",
-                ":RoomID",
-                "occupancy"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Counts active admissions (DischargeDate IS NULL) for this room. Real-time occupancy check."
-          },
-          "response": []
-        },
-        {
-          "name": "Room Count by Ward (Aggregate)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/clinic/rooms/ward/:WardID/count",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "clinic",
-                "rooms",
-                "ward",
-                ":WardID",
-                "count"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "raw": "{{base_url}}/patients/{{current_patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["patients", "{{current_patient_id}}"]
             }
           },
           "response": []
         }
       ]
     },
+
     {
-      "name": "Appointments & Admissions",
+      "name": "05. Clinical",
       "item": [
         {
-          "name": "Create Appointment",
+          "name": "05-A Book Appointment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.AppointmentID) {",
+                  "    pm.collectionVariables.set('current_appointment_id', json.data.AppointmentID);",
+                  "    console.log('AppointmentID saved:', json.data.AppointmentID);",
+                  "} else { console.error('Create Appointment failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"EmployeeID\": \"E001\",\n  \"AppointmentDate\": \"2025-06-20\",\n  \"AppointmentTime\": \"10:30:00\",\n  \"AppointmentStatus\": \"Scheduled\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/appointments/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ""]
             },
+            "description": "EmployeeID must reference a Doctor (Doctors table). Uses dynamic current_patient_id."
+          },
+          "response": []
+        },
+        {
+          "name": "05-B Update Appointment Status",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"AppointmentDate\": \"2025-06-15\",\n  \"AppointmentTime\": \"09:30:00\",\n  \"AppointmentStatus\": \"Scheduled\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"AppointmentStatus\": \"Completed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments/{{current_appointment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", "{{current_appointment_id}}"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Appointments",
+          "name": "05-C Get All Appointments",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/appointments/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ""]
             }
           },
           "response": []
         },
         {
-          "name": "Get Appointments by PatientID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Search filter: returns all appointments for a given PatientID."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Appointments by DoctorID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/doctor/:DoctorID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                "doctor",
-                ":DoctorID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Search filter: returns all appointments assigned to a given DoctorID (EmployeeID)."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Appointment",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/:AppointmentID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                ":AppointmentID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"AppointmentDate\": \"2025-06-16\",\n  \"AppointmentTime\": \"10:00:00\",\n  \"AppointmentStatus\": \"Confirmed\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+          "name": "05-D Admit Patient (Create Admission)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.AdmissionID) {",
+                  "    pm.collectionVariables.set('current_admission_id', json.data.AdmissionID);",
+                  "    console.log('AdmissionID saved:', json.data.AdmissionID);",
+                  "} else { console.error('Create Admission failed:', JSON.stringify(json)); }"
+                ]
               }
             }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Appointment",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/:AppointmentID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                ":AppointmentID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Permanently removes an appointment record. Use with caution."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Admission",
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/admissions",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                "admissions"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"RoomID\": 1,\n  \"AdmissionDate\": \"2025-06-15\",\n  \"DischargeDate\": null,\n  \"PrimaryDiagnosis\": \"Acute Myocardial Infarction\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Admissions",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/admissions",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                "admissions"
-              ]
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"RoomID\": {{current_room_id}},\n  \"AdmissionDate\": \"2025-06-20\",\n  \"PrimaryDiagnosis\": \"Cardiac Arrhythmia\"\n}",
+              "options": { "raw": { "language": "json" } }
             },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+            "url": {
+              "raw": "{{base_url}}/clinic/admissions",
+              "host": ["{{base_url}}"],
+              "path": ["clinic", "admissions"]
             }
           },
           "response": []
         },
         {
-          "name": "Update Admission (e.g. Discharge)",
+          "name": "05-E Discharge Patient",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/admissions/:AdmissionID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                "admissions",
-                ":AdmissionID"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"DischargeDate\": \"2025-06-20\",\n  \"PrimaryDiagnosis\": \"Acute Myocardial Infarction \\u2014 Resolved\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"DischargeDate\": \"2025-06-25\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/clinic/admissions/{{current_admission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["clinic", "admissions", "{{current_admission_id}}"]
             }
           },
           "response": []
         },
         {
-          "name": "Delete Admission",
+          "name": "05-F Get All Admissions",
           "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/appointments/admissions/:AdmissionID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "appointments",
-                "admissions",
-                ":AdmissionID"
-              ]
-            },
+            "method": "GET",
+            "header": [],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/clinic/admissions",
+              "host": ["{{base_url}}"],
+              "path": ["clinic", "admissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05-G Delete Appointment (Doctor Permission)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments/{{current_appointment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", "{{current_appointment_id}}"]
+            },
+            "description": "Doctors have DELETE permission on Appointments per the SQL GRANT statements."
+          },
+          "response": []
+        }
+      ]
+    },
+
+    {
+      "name": "06. Records",
+      "item": [
+        {
+          "name": "06-A Create Medical Record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.RecordID) {",
+                  "    pm.collectionVariables.set('current_record_id', json.data.RecordID);",
+                  "    console.log('RecordID saved:', json.data.RecordID);",
+                  "} else { console.error('Create Medical Record failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"EmployeeID\": \"E001\",\n  \"RecordDate\": \"2025-06-20\",\n  \"ClinicalNotes\": \"Patient presents with palpitations and shortness of breath.\",\n  \"FinalDiagnosis\": \"Cardiac Arrhythmia\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/records/medical",
+              "host": ["{{base_url}}"],
+              "path": ["records", "medical"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06-B Get All Medical Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/records/medical",
+              "host": ["{{base_url}}"],
+              "path": ["records", "medical"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06-C Get Medical Record by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/records/medical/{{current_record_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["records", "medical", "{{current_record_id}}"]
             }
           },
           "response": []
         }
       ]
     },
+
     {
-      "name": "Pharmacy",
+      "name": "07. Pharmacy",
       "item": [
         {
-          "name": "Add Medication",
+          "name": "07-A Create Medication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.MedicationID) {",
+                  "    pm.collectionVariables.set('current_medication_id', json.data.MedicationID);",
+                  "    console.log('MedicationID saved:', json.data.MedicationID);",
+                  "} else { console.error('Create Medication failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"MedicationName\": \"Amiodarone\",\n  \"MedicationType\": \"Antiarrhythmic\",\n  \"StockQuantity\": 200,\n  \"UnitPrice\": 12.50\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/pharmacy/medications",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "medications"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"MedicationName\": \"Atorvastatin\",\n  \"MedicationType\": \"Tablet\",\n  \"StockQuantity\": 500,\n  \"UnitPrice\": 12.5\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "medications"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Medications",
+          "name": "07-B Get All Medications",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/pharmacy/medications",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "medications"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "medications"]
             }
           },
           "response": []
         },
         {
-          "name": "Create Prescription",
+          "name": "07-C Create Prescription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.PrescriptionID) {",
+                  "    pm.collectionVariables.set('current_prescription_id', json.data.PrescriptionID);",
+                  "    console.log('PrescriptionID saved:', json.data.PrescriptionID);",
+                  "} else { console.error('Create Prescription failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"EmployeeID\": \"E001\",\n  \"DateIssued\": \"2025-06-20\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/pharmacy/prescriptions",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "prescriptions"
-              ]
-            },
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "prescriptions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07-D Add Prescription Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"DateIssued\": \"2025-06-15\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Prescriptions",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/pharmacy/prescriptions",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "prescriptions"
-              ]
+              "raw": "{\n  \"PrescriptionID\": {{current_prescription_id}},\n  \"MedicationID\": {{current_medication_id}},\n  \"Dosage\": \"200mg\",\n  \"Duration\": \"30 days\",\n  \"Frequency\": \"Once daily\"\n}",
+              "options": { "raw": { "language": "json" } }
             },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Prescriptions by PatientID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/pharmacy/prescriptions/patient/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "prescriptions",
-                "patient",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Add Prescription Item",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "url": {
               "raw": "{{base_url}}/pharmacy/prescription-items",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "prescription-items"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PrescriptionID\": 1,\n  \"MedicationID\": 1,\n  \"Dosage\": \"20mg\",\n  \"Duration\": \"30 days\",\n  \"Frequency\": \"Once daily at bedtime\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "prescription-items"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Prescription Items",
+          "name": "07-E Get Prescriptions for Patient",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/pharmacy/prescription-items",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "prescription-items"
-              ]
-            },
+            "header": [],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Prescription Item",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
-              "raw": "{{base_url}}/pharmacy/prescription-items/:ItemID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pharmacy",
-                "prescription-items",
-                ":ItemID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"Dosage\": \"40mg\",\n  \"Duration\": \"60 days\",\n  \"Frequency\": \"Once daily\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{{base_url}}/pharmacy/prescriptions?PatientID={{current_patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "prescriptions"],
+              "query": [{ "key": "PatientID", "value": "{{current_patient_id}}" }]
             }
           },
           "response": []
         }
       ]
     },
+
     {
-      "name": "Diagnostics & Labs",
+      "name": "08. Diagnostics",
       "item": [
         {
-          "name": "Create Lab Test",
+          "name": "08-A Request Lab Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.TestID) {",
+                  "    pm.collectionVariables.set('current_test_id', json.data.TestID);",
+                  "    console.log('TestID saved:', json.data.TestID);",
+                  "} else { console.error('Request Lab Test failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"EmployeeID\": \"E001\",\n  \"TestType\": \"ECG\",\n  \"RequestDate\": \"2025-06-20\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/diagnostics/lab-tests",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-tests"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"TestType\": \"Complete Blood Count\",\n  \"RequestDate\": \"2025-06-15\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{base_url}}"],
+              "path": ["diagnostics", "lab-tests"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Lab Tests",
+          "name": "08-B Submit Lab Report",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TestID\": {{current_test_id}},\n  \"ResultSummary\": \"Atrial fibrillation detected. Rate: 110 bpm.\",\n  \"ReportDate\": \"2025-06-21\",\n  \"PathologistComments\": \"Recommend cardiology follow-up.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/diagnostics/lab-reports",
+              "host": ["{{base_url}}"],
+              "path": ["diagnostics", "lab-reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08-C Get All Lab Tests",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/diagnostics/lab-tests",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-tests"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["diagnostics", "lab-tests"]
             }
           },
           "response": []
         },
         {
-          "name": "Get Lab Tests by DoctorID (Search)",
+          "name": "08-D Get Lab Report by Test ID",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/lab-tests/doctor/:DoctorID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-tests",
-                "doctor",
-                ":DoctorID"
-              ]
-            },
+            "header": [],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Lab Tests by PatientID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
-              "raw": "{{base_url}}/diagnostics/lab-tests/patient/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-tests",
-                "patient",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Lab Test",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/lab-tests/:TestID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-tests",
-                ":TestID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"TestType\": \"Complete Blood Count + Differential\",\n  \"RequestDate\": \"2025-06-15\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Lab Test",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/lab-tests/:TestID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-tests",
-                ":TestID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Hard delete. Will fail if a LabReport references this TestID due to FK constraint."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Lab Report",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/lab-reports",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-reports"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"TestID\": 1,\n  \"ResultSummary\": \"WBC: 7.2, RBC: 4.8, Hgb: 14.2 \\u2014 All values within normal range.\",\n  \"ReportDate\": \"2025-06-16\",\n  \"PathologistComments\": \"No abnormalities detected.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Lab Reports",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/lab-reports",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-reports"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Lab Report by TestID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/lab-reports/test/:TestID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "lab-reports",
-                "test",
-                ":TestID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Returns the single report associated with a given TestID (1-to-1 relationship)."
-          },
-          "response": []
-        },
-        {
-          "name": "Schedule Surgery",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/surgeries",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "surgeries"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"RoomID\": 1,\n  \"SurgeryDate\": \"2025-06-20\",\n  \"SurgeryType\": \"Coronary Artery Bypass Graft\",\n  \"Outcome\": null\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Surgeries",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/surgeries",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "surgeries"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Surgeries by PatientID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/surgeries/patient/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "surgeries",
-                "patient",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Surgeries by DoctorID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/surgeries/doctor/:EmployeeID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "surgeries",
-                "doctor",
-                ":EmployeeID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Surgery Record",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/diagnostics/surgeries/:SurgeryID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "diagnostics",
-                "surgeries",
-                ":SurgeryID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"RoomID\": 1,\n  \"SurgeryDate\": \"2025-06-20\",\n  \"SurgeryType\": \"Coronary Artery Bypass Graft\",\n  \"Outcome\": \"Successful \\u2014 Patient stable post-op\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{{base_url}}/diagnostics/lab-reports/{{current_test_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["diagnostics", "lab-reports", "{{current_test_id}}"]
             }
           },
           "response": []
         }
       ]
     },
+
     {
-      "name": "Finance",
+      "name": "09. Finance",
       "item": [
         {
-          "name": "Create Bill",
+          "name": "09-A Create Bill",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.BillID) {",
+                  "    pm.collectionVariables.set('current_bill_id', json.data.BillID);",
+                  "    console.log('BillID saved:', json.data.BillID);",
+                  "} else { console.error('Create Bill failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/bills",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "bills"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"TotalAmount\": 45000.0,\n  \"InsuranceCoverageAmount\": 30000.0,\n  \"BillDate\": \"2025-06-20\",\n  \"Status\": \"Pending\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"TotalAmount\": 4500.00,\n  \"InsuranceCoverageAmount\": 2000.00,\n  \"BillDate\": \"2025-06-25\",\n  \"Status\": \"Pending\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/finance/billing",
+              "host": ["{{base_url}}"],
+              "path": ["finance", "billing"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Bills",
+          "name": "09-B Make Payment",
           "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/bills",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "bills"
-              ]
-            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Bills by PatientID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/bills/patient/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "bills",
-                "patient",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Billing Record",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/bills/:BillID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "bills",
-                ":BillID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"TotalAmount\": 45000.0,\n  \"InsuranceCoverageAmount\": 30000.0,\n  \"BillDate\": \"2025-06-20\",\n  \"Status\": \"Paid\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Record Payment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "raw": "{\n  \"BillID\": {{current_bill_id}},\n  \"PaymentDate\": \"2025-06-25\",\n  \"AmountPaid\": 2500.00,\n  \"PaymentMethod\": \"Cash\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/finance/payments",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "payments"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"BillID\": 1,\n  \"PaymentDate\": \"2025-06-21\",\n  \"AmountPaid\": 15000.0,\n  \"PaymentMethod\": \"Bank Transfer\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{base_url}}"],
+              "path": ["finance", "payments"]
             }
           },
           "response": []
         },
         {
-          "name": "Get All Payments",
+          "name": "09-C Get All Bills",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/finance/billing",
+              "host": ["{{base_url}}"],
+              "path": ["finance", "billing"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09-D Get All Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
             "url": {
               "raw": "{{base_url}}/finance/payments",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "payments"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["finance", "payments"]
             }
           },
           "response": []
         },
         {
-          "name": "Get Payments by BillID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/payments/bill/:BillID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "payments",
-                "bill",
-                ":BillID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Process Salary Payment",
+          "name": "09-E Create Salary Payment",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/salary-payments",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "salary-payments"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"BaseAmount\": 85000,\n  \"Bonus\": 5000,\n  \"Deductions\": 2000,\n  \"PayDate\": \"2025-05-31\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Salary Payments",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"BaseAmount\": 5000,\n  \"Bonus\": 500,\n  \"Deductions\": 200,\n  \"PayDate\": \"2025-06-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/finance/salary-payments",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "salary-payments"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Salary Payments by EmployeeID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/salary-payments/employee/:EmployeeID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "salary-payments",
-                "employee",
-                ":EmployeeID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["finance", "salary-payments"]
             }
           },
           "response": []
         }
       ]
     },
+
     {
-      "name": "Logistics",
+      "name": "10. Logistics & Support",
       "item": [
         {
-          "name": "Create Supplier",
+          "name": "10-A Create Supplier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.SupplierID) {",
+                  "    pm.collectionVariables.set('current_supplier_id', json.data.SupplierID);",
+                  "    console.log('SupplierID saved:', json.data.SupplierID);",
+                  "} else { console.error('Create Supplier failed:', JSON.stringify(json)); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/logistics/suppliers",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "logistics",
-                "suppliers"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"SupplierName\": \"MedEquip Africa Ltd.\",\n  \"ContactPerson\": \"Solomon Tadesse\",\n  \"Phone\": \"251911500001\",\n  \"Address\": \"Bole Road, Addis Ababa\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Suppliers",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "raw": "{\n  \"SupplierName\": \"MedSupply Ethiopia PLC\",\n  \"ContactPerson\": \"Dawit Tadesse\",\n  \"Phone\": \"251911999001\",\n  \"Address\": \"Bole, Addis Ababa\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
               "raw": "{{base_url}}/logistics/suppliers",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "logistics",
-                "suppliers"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["logistics", "suppliers"]
             }
           },
           "response": []
         },
         {
-          "name": "Update Supplier",
+          "name": "10-B Create Inventory Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ItemName\": \"Surgical Gloves\",\n  \"Category\": \"PPE\",\n  \"Quantity\": 500,\n  \"ReorderLevel\": 50,\n  \"SupplierID\": {{current_supplier_id}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/logistics/inventory",
+              "host": ["{{base_url}}"],
+              "path": ["logistics", "inventory"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-C Get All Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/logistics/inventory",
+              "host": ["{{base_url}}"],
+              "path": ["logistics", "inventory"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-D Create Shift Schedule",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"EmployeeID\": \"E001\",\n  \"ShiftDate\": \"2025-06-21\",\n  \"ShiftStartTime\": \"08:00:00\",\n  \"ShiftEndTime\": \"16:00:00\",\n  \"ShiftStatus\": \"Scheduled\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/support/shifts",
+              "host": ["{{base_url}}"],
+              "path": ["support", "shifts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-E Get All Shift Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{base_url}}/support/shifts",
+              "host": ["{{base_url}}"],
+              "path": ["support", "shifts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-F Log Visitor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"VisitorName\": \"Tigist Bekele\",\n  \"RelationToPatient\": \"Spouse\",\n  \"VisitDate\": \"2025-06-22\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/support/visitors",
+              "host": ["{{base_url}}"],
+              "path": ["support", "visitors"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-G Create Emergency Case",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PatientID\": {{current_patient_id}},\n  \"EmployeeID\": \"E001\",\n  \"AdmissionID\": {{current_admission_id}},\n  \"AdmissionTime\": \"2025-06-20T09:15:00\",\n  \"SeverityLevel\": \"Critical\",\n  \"Outcome\": \"Stabilized\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/support/emergency-cases",
+              "host": ["{{base_url}}"],
+              "path": ["support", "emergency-cases"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-H Update User Account",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/logistics/suppliers/:SupplierID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "logistics",
-                "suppliers",
-                ":SupplierID"
-              ]
-            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": {
               "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"SupplierName\": \"MedEquip Africa Ltd.\",\n  \"ContactPerson\": \"Tigist Alemu\",\n  \"Phone\": \"251911500099\",\n  \"Address\": \"Churchill Ave, Addis Ababa\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Add Inventory Item",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "raw": "{\n  \"Username\": \"dr.smith.v2\",\n  \"UserRole\": \"doctor\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
-              "raw": "{{base_url}}/logistics/inventory",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "logistics",
-                "inventory"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"ItemName\": \"Surgical Gloves (L)\",\n  \"Category\": \"PPE\",\n  \"Quantity\": 2000,\n  \"ReorderLevel\": 500,\n  \"SupplierID\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{{base_url}}/auth/user/:UserID",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "user", ":UserID"],
+              "variable": [{ "key": "UserID", "value": "1", "description": "Replace with actual UserID from Get All User Accounts." }]
             }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Inventory",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/logistics/inventory",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "logistics",
-                "inventory"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Inventory by SupplierID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/logistics/inventory/supplier/:SupplierID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "logistics",
-                "inventory",
-                "supplier",
-                ":SupplierID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Support",
-      "item": [
-        {
-          "name": "Record Emergency Case",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/support/emergencies",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "support",
-                "emergencies"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"EmployeeID\": \"E001\",\n  \"AdmissionID\": 1,\n  \"AdmissionTime\": \"2025-06-15T02:30:00\",\n  \"SeverityLevel\": \"Critical\",\n  \"Outcome\": null\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Emergency Cases",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/support/emergencies",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "support",
-                "emergencies"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Log Visitor",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/support/visitors",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "support",
-                "visitors"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"PatientID\": 1001,\n  \"VisitorName\": \"Sara Bekele\",\n  \"RelationToPatient\": \"Sister\",\n  \"VisitDate\": \"2025-06-16\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Visitors",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/support/visitors",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "support",
-                "visitors"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Visitors by PatientID (Search)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/support/visitors/patient/:PatientID",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "support",
-                "visitors",
-                "patient",
-                ":PatientID"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Count Visitors per Patient (Aggregate)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/support/visitors/patient/:PatientID/count",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "support",
-                "visitors",
-                "patient",
-                ":PatientID",
-                "count"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Returns VisitorCount for the given PatientID. Aggregate query test."
           },
           "response": []
         }
       ]
     }
+
   ]
 }

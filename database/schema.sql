@@ -303,7 +303,7 @@ CREATE TABLE UserAccounts (
   EmployeeID varchar(10) NULL,
   PatientID int NULL,
   Username varchar(50) NOT NULL,
-  PasswordHash varchar(50) NOT NULL,
+  PasswordHash varchar(100) NOT NULL,
   UserRole varchar(30) NOT NULL,
   PRIMARY KEY (UserID),
   UNIQUE KEY Username (Username),
