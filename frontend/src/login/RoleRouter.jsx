@@ -1,7 +1,7 @@
 import React from "react";
 import DoctorDashboard from "../doctorPage/DoctorPage.jsx";
 import PatientDashboard from "../PatientPage/PatientPage.jsx";
-//import StaffDashboard from "../staffPage/StaffPage.jsx";
+import StaffDashboard from "../staffPage/StaffPage.jsx";
 import NurseDashboard from "../dashboard/NurseDashboard.jsx";
 import AdminDashboard from "../dashboard/AdminDashboard.jsx";
 import ErrorPage from "../dashboard/error.jsx"; // <-- Imported ErrorPage

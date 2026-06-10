@@ -4,14 +4,10 @@ import { generateCalendarDays, MONTH_NAMES } from "./calendarHelper";
 /**
  * Custom React Hook that encapsulates state, API interactions, 
  * data transforms, filtering, and form handlers for the Doctor Portal.
- * 
- * @param {string} username - The logged in doctor's username passed from the router
  */
-export function useDoctorData(username) {
-  // --- DYNAMIC CORE STATES ---
-  const [activeDoctor, setActiveDoctor] = useState(null);
-
+export function useDoctorData(authenticatedUsername) {
   // --- DATABASE STATE LAYERS ---
+  const [employees, setEmployees] = useState([]);
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -20,10 +16,8 @@ export function useDoctorData(username) {
   const [labTests, setLabTests] = useState([]);
   const [labReports, setLabReports] = useState([]);
   const [surgeries, setSurgeries] = useState([]);
-  
-  // Dynamic collections replacing constants.js
-  const [rooms, setRooms] = useState([]);
   const [insurances, setInsurances] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [medications, setMedications] = useState([]);
 
   // --- UI STATES ---
@@ -46,30 +40,30 @@ export function useDoctorData(username) {
 
   // --- SPECIFIC FORM DATA OBJECTS ---
   const [newApptForm, setNewApptForm] = useState({
-    patientId: "1",
+    patientId: "",
     date: new Date().toISOString().split("T")[0],
     time: "10:30",
     status: "Scheduled"
   });
 
   const [newRxForm, setNewRxForm] = useState({
-    patientId: "1",
+    patientId: "",
     items: [
-      { medicationId: "1", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }
+      { medicationId: "", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }
     ]
   });
 
   const [newLabForm, setNewLabForm] = useState({
-    patientId: "1",
-    testType: "Lipid Profile Panel",
+    patientId: "",
+    testType: "",
     requestDate: new Date().toISOString().split("T")[0]
   });
 
   const [newSurgeryForm, setNewSurgeryForm] = useState({
-    patientId: "1",
-    surgeryType: "Diagnostic Angioplasty",
+    patientId: "",
+    surgeryType: "",
     date: new Date().toISOString().split("T")[0],
-    roomId: "1"
+    roomId: ""
   });
 
   const [newLabReportForm, setNewLabReportForm] = useState({
@@ -99,179 +93,229 @@ export function useDoctorData(username) {
     RoomID: ""
   });
 
-  // Helper to format ISO dates to clean YYYY-MM-DD strings
-  const formatDateStr = (dateVal) => {
-    if (!dateVal) return "";
-    return dateVal.split("T")[0];
-  };
-
-  // Load backend data from REST API endpoints
-  const loadAllData = async () => {
+  // Base loader helper
+  const getArray = async (url) => {
     try {
-      // 1. Patients
-      const patientsRes = await fetch('/api/v1/patients/patient');
-      const patientsJson = await patientsRes.json();
-      setPatients(patientsJson.data.patients || []);
-
-      // 2. Appointments
-      const apptsRes = await fetch('/api/v1/appointments');
-      const apptsJson = await apptsRes.json();
-      const formattedAppts = (apptsJson.data.appointments || []).map(a => ({
-        ...a,
-        AppointmentDate: formatDateStr(a.AppointmentDate),
-        Status: a.AppointmentStatus || a.Status // Fallback mapping to handle frontend Status references
-      }));
-      setAppointments(formattedAppts);
-
-      // 3. Prescriptions
-      const rxRes = await fetch('/api/v1/pharmacy/prescriptions');
-      const rxJson = await rxRes.json();
-      const formattedRx = (rxJson.data.prescriptions || []).map(r => ({
-        ...r,
-        DateIssued: formatDateStr(r.DateIssued)
-      }));
-      setPrescriptions(formattedRx);
-
-      // 4. Prescription Items
-      const rxItemsRes = await fetch('/api/v1/pharmacy/prescription-items');
-      const rxItemsJson = await rxItemsRes.json();
-      setPrescriptionItems(rxItemsJson.data.prescriptionItems || []);
-
-      // 5. Lab Tests
-      const labTestsRes = await fetch('/api/v1/diagnostics/lab-tests');
-      const labTestsJson = await labTestsRes.json();
+      console.log(`[getArray] Fetching: ${url}`);
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.warn(`[getArray Warn] Fetching ${url} returned status:`, response.status);
+        return [];
+      }
+      const json = await response.json();
+      console.log(`[getArray Success] Fetching ${url} succeeded. Raw JSON:`, json);
       
-      // 6. Lab Reports
-      const labReportsRes = await fetch('/api/v1/diagnostics/lab-reports');
-      const labReportsJson = await labReportsRes.json();
-      const formattedReports = (labReportsJson.data.labReports || []).map(rep => ({
-        ...rep,
-        ReportDate: formatDateStr(rep.ReportDate)
-      }));
-      setLabReports(formattedReports);
+      // Highly robust array extraction logic
+      const findFirstArray = (obj) => {
+        if (!obj || typeof obj !== "object") return null;
+        if (Array.isArray(obj)) return obj;
+        
+        // Priority keys for clinical data unpacks
+        const priorityKeys = [
+          "data", "records", "patients", "appointments", 
+          "prescriptions", "prescriptionItems", "labTests", 
+          "labReports", "employees", "doctors", "clinics", "rooms"
+        ];
+        for (const k of priorityKeys) {
+          if (Array.isArray(obj[k])) return obj[k];
+          if (obj[k] && typeof obj[k] === "object") {
+            const nested = findFirstArray(obj[k]);
+            if (nested) return nested;
+          }
+        }
+        
+        // Generic object scan
+        for (const val of Object.values(obj)) {
+          if (Array.isArray(val)) return val;
+          if (val && typeof val === "object") {
+            const nested = findFirstArray(val);
+            if (nested) return nested;
+          }
+        }
+        return null;
+      };
 
-      // Resolve Lab Test Status dynamically based on report presence (no Status column exists in MySQL)
-      const formattedLabTests = (labTestsJson.data.labTests || []).map(test => {
-        const hasReport = formattedReports.some(rep => rep.TestID === test.TestID);
-        return {
-          ...test,
-          RequestDate: formatDateStr(test.RequestDate),
-          Status: hasReport ? "Completed" : "Pending"
-        };
-      });
-      setLabTests(formattedLabTests);
-
-      // 7. Surgeries
-      const surgeriesRes = await fetch('/api/v1/diagnostics/surgeries');
-      const surgeriesJson = await surgeriesRes.json();
-      const formattedSurgeries = (surgeriesJson.data.surgeries || []).map(s => ({
-        ...s,
-        SurgeryDate: formatDateStr(s.SurgeryDate)
-      }));
-      setSurgeries(formattedSurgeries);
-
-      // 8. Dynamic list configurations (replacing constant files)
-      const roomsRes = await fetch('/api/v1/clinic/rooms');
-      const roomsJson = await roomsRes.json();
-      setRooms(roomsJson.data.rooms || []);
-
-      const insRes = await fetch('/api/v1/patients/insurance');
-      const insJson = await insRes.json();
-      setInsurances(insJson.data.insuranceRecords || []);
-
-      const medsRes = await fetch('/api/v1/pharmacy/medications');
-      const medsJson = await medsRes.json();
-      setMedications(medsJson.data.medications || []);
-
+      const extracted = findFirstArray(json);
+      if (extracted) return extracted;
+      return [];
     } catch (err) {
-      console.error("[Addis Hospital Sync Error]: Failed to background sync API data:", err);
+      console.error(`[getArray Error] Fetch ${url} threw exception:`, err);
+      return [];
     }
   };
 
-  // --- SYNC ACTIVE DOCTOR AND SPECIFIC RECORDS ON MOUNT/PROP CHANGE ---
+  // Asynchronous API Calling Mechanism to populate the data
+  const loadAllData = async () => {
+    try {
+      const [pats, appts, recs, rxs, rxItems, tests, reports, surgs, rms, meds, emps, ins] = await Promise.all([
+        getArray("/api/v1/patients/patient"),
+        getArray("/api/v1/appointments"),
+        getArray("/api/v1/records"),
+        getArray("/api/v1/pharmacy/prescriptions"),
+        getArray("/api/v1/pharmacy/prescription-items"),
+        getArray("/api/v1/diagnostics/lab-tests"),
+        getArray("/api/v1/diagnostics/lab-reports"),
+        getArray("/api/v1/diagnostics/surgeries"),
+        getArray("/api/v1/clinic/rooms"),
+        getArray("/api/v1/pharmacy/medications"),
+        getArray("/api/v1/employees/doctors/all/detailed"),
+        getArray("/api/v1/patients/insurance")
+      ]);
+
+      setPatients(pats || []);
+      setAppointments(
+        (appts || []).map(a => ({
+          ...a,
+          Status: a.Status || a.AppointmentStatus || "Scheduled",
+          AppointmentStatus: a.AppointmentStatus || a.Status || "Scheduled",
+          PatientID: a.PatientID ? String(a.PatientID) : "",
+          EmployeeID: a.EmployeeID ? String(a.EmployeeID) : ""
+        }))
+      );
+      setMedicalRecords(recs || []);
+      setPrescriptions(rxs || []);
+      setPrescriptionItems(rxItems || []);
+      setLabTests(tests || []);
+      setLabReports(reports || []);
+      setSurgeries(surgs || []);
+      setRooms(rms || []);
+      setMedications(meds || []);
+      setEmployees(emps || []);
+      setInsurances(ins || []);
+    } catch (err) {
+      console.error("[Addis Hospital Mount Error]: Failed to background sync API schemas:", err);
+    }
+  };
+
   useEffect(() => {
-    const initializeProfileAndData = async () => {
-      await loadAllData();
-      
-      try {
-        const response = await fetch('/api/v1/employees/doctors/all/detailed');
-        const json = await response.json();
-        const detailedDoctors = json.data.doctorInfo || [];
-        
-        // Match active username from the router (e.g. 'sarahlee')
-        const matchedDoctor = detailedDoctors.find(d => {
-          const normalizedName = d.EmployeeName.toLowerCase().replace("dr. ", "").replace(/\s+/g, "");
-          return normalizedName === username?.toLowerCase() || d.EmployeeID === username;
-        }) || detailedDoctors[0];
-        
-        setActiveDoctor(matchedDoctor);
+    loadAllData();
+  }, []);
 
-        // Fetch medical records matching this doctor's EmployeeID
-        if (matchedDoctor) {
-          const recordsRes = await fetch(`/api/v1/records/employee/${matchedDoctor.EmployeeID}`);
-          const recordsJson = await recordsRes.json();
-          const formattedRecords = (recordsJson.data.records || []).map(rec => ({
-            ...rec,
-            RecordDate: formatDateStr(rec.RecordDate)
-          }));
-          setMedicalRecords(formattedRecords);
-        }
-      } catch (err) {
-        console.error("Failed to initialize active doctor credentials:", err);
-      }
-    };
-
-    initializeProfileAndData();
-  }, [username]);
-
-  // Fetch full medical record history dynamically when a patient is selected in detail view
+  // Dynamically initialize form selections when live collections load
   useEffect(() => {
-    if (!selectedPatientId) return;
-    const fetchPatientRecords = async () => {
-      try {
-        const res = await fetch(`/api/v1/records/patient/${selectedPatientId}`);
-        const json = await res.json();
-        if (json.success && json.data.records) {
-          setMedicalRecords(prev => {
-            const existingMap = new Map(prev.map(r => [r.RecordID, r]));
-            json.data.records.forEach(r => {
-              existingMap.set(r.RecordID, {
-                ...r,
-                RecordDate: formatDateStr(r.RecordDate)
-              });
-            });
-            return Array.from(existingMap.values());
-          });
+    if (patients.length > 0) {
+      const firstPatientId = patients[0].PatientID;
+      setNewApptForm(prev => prev.patientId ? prev : { ...prev, patientId: firstPatientId });
+      setNewRxForm(prev => prev.patientId ? prev : { ...prev, patientId: firstPatientId });
+      setNewLabForm(prev => prev.patientId ? prev : { ...prev, patientId: firstPatientId });
+      setNewSurgeryForm(prev => prev.patientId ? prev : { ...prev, patientId: firstPatientId });
+    }
+  }, [patients]);
+
+  useEffect(() => {
+    if (medications.length > 0) {
+      const firstMedId = medications[0].MedicationID;
+      setNewRxForm(prev => {
+        if (prev.items[0] && !prev.items[0].medicationId) {
+          const items = [...prev.items];
+          items[0] = { ...items[0], medicationId: firstMedId };
+          return { ...prev, items };
         }
-      } catch (err) {
-        console.error("Failed to load records for patient:", err);
+        return prev;
+      });
+    }
+  }, [medications]);
+
+  useEffect(() => {
+    if (rooms.length > 0) {
+      const firstRoomId = rooms[0].RoomID;
+      setNewSurgeryForm(prev => prev.roomId ? prev : { ...prev, roomId: firstRoomId });
+    }
+  }, [rooms]);
+
+  // Set active doctor dynamically based on login user matching
+  const activeDoctor = useMemo(() => {
+    const targetUser = (authenticatedUsername || "").toLowerCase().trim();
+    console.log("[DEBUG] useDoctorData activeDoctor lookup, targetUser:", targetUser);
+    console.log("[DEBUG] employees loaded list length:", employees.length);
+    console.log("[DEBUG] employees loaded raw data:", employees);
+    if (!targetUser) {
+      if (employees.length > 0) {
+        const fallback = {
+          EmployeeID: employees[0].EmployeeID,
+          EmployeeName: employees[0].EmployeeName || `EMP-${employees[0].EmployeeID}`,
+          Specialty: employees[0].Specialty || "",
+          LicenseNumber: employees[0].LicenseNumber || ""
+        };
+        console.log("[DEBUG] activeDoctor targetUser empty fallback:", fallback);
+        return fallback;
       }
+      const loadingDoc = {
+        EmployeeID: "",
+        EmployeeName: "Clinician Profile Loading...",
+        Specialty: "",
+        LicenseNumber: ""
+      };
+      console.log("[DEBUG] activeDoctor targetUser empty loading:", loadingDoc);
+      return loadingDoc;
+    }
+
+    const found = employees.find(emp => {
+      const eName = (emp.EmployeeName || "").toLowerCase();
+      const slugName = eName
+        .replace(/^dr\.\s+/g, "")
+        .replace(/^nurse\s+/g, "")
+        .replace(/^staff\s+/g, "")
+        .replace(/[^a-z0-9]/g, "");
+
+      const slugEmail = emp.Email ? emp.Email.split("@")[0].toLowerCase() : "";
+
+      console.log(`[DEBUG] Comparing emp name:"${emp.EmployeeName}" slugName:"${slugName}" slugEmail:"${slugEmail}" empID:"${emp.EmployeeID}" with targetUser:"${targetUser}"`);
+
+      return slugName === targetUser || slugEmail === targetUser || String(emp.EmployeeID).toLowerCase() === targetUser;
+    });
+
+    if (found) {
+      const resDoc = {
+        EmployeeID: found.EmployeeID,
+        EmployeeName: found.EmployeeName,
+        Specialty: found.Specialty || "",
+        LicenseNumber: found.LicenseNumber || ""
+      };
+      console.log("[DEBUG] activeDoctor found and resolved perfectly:", resDoc);
+      return resDoc;
+    }
+
+    if (employees.length > 0) {
+      const fallback = {
+        EmployeeID: employees[0].EmployeeID,
+        EmployeeName: employees[0].EmployeeName || `EMP-${employees[0].EmployeeID}`,
+        Specialty: employees[0].Specialty || "",
+        LicenseNumber: employees[0].LicenseNumber || ""
+      };
+      console.log("[DEBUG] activeDoctor NOT found by username, falling back:", fallback);
+      return fallback;
+    }
+
+    const loadingDoc = {
+      EmployeeID: "",
+      EmployeeName: "Clinician Profile Loading...",
+      Specialty: "",
+      LicenseNumber: ""
     };
-    fetchPatientRecords();
-  }, [selectedPatientId]);
+    console.log("[DEBUG] activeDoctor NOT found, no employees loaded yet:", loadingDoc);
+    return loadingDoc;
+  }, [employees, authenticatedUsername]);
 
   // --- ACTION SUBMISSIONS ---
   const handleAddAppointment = async (e) => {
     e.preventDefault();
-    if (!activeDoctor) return;
     try {
-      const response = await fetch('/api/v1/appointments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/v1/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          PatientID: parseInt(newApptForm.patientId, 10) || newApptForm.patientId,
+          PatientID: newApptForm.patientId,
           EmployeeID: activeDoctor.EmployeeID,
           AppointmentDate: newApptForm.date,
-          AppointmentTime: newApptForm.time + ":00", // Seconds formatting for SQL
+          AppointmentTime: newApptForm.time,
+          Status: newApptForm.status,
           AppointmentStatus: newApptForm.status
         })
       });
-      const json = await response.json();
-      if (json.success) {
+      if (res.ok) {
         setShowAppointmentModal(false);
         loadAllData();
-      } else {
-        console.error("Failed to add appointment:", json.message);
       }
     } catch (err) {
       console.error("Failed to add appointment:", err);
@@ -280,43 +324,33 @@ export function useDoctorData(username) {
 
   const handleAddPrescriptionSubmit = async (e) => {
     e.preventDefault();
-    if (!activeDoctor) return;
     setSigningPrescription(true);
     try {
-      // 1. Create prescription header record
-      const rxResponse = await fetch('/api/v1/pharmacy/prescriptions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const rxRes = await fetch("/api/v1/pharmacy/prescriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          PatientID: parseInt(newRxForm.patientId, 10) || newRxForm.patientId,
+          PatientID: newRxForm.patientId,
           EmployeeID: activeDoctor.EmployeeID,
           DateIssued: new Date().toISOString().split("T")[0]
         })
       });
-      const rxJson = await rxResponse.json();
-      if (!rxJson.success) {
-        throw new Error(rxJson.message || "Failed to create prescription header");
-      }
+      if (!rxRes.ok) throw new Error("Failed to create parent prescription");
+      const rxData = await rxRes.json();
+      const rxId = rxData.PrescriptionID;
 
-      const prescriptionId = rxJson.data.PrescriptionID;
-
-      // 2. Submit individual item records
       for (const item of newRxForm.items) {
-        const itemResponse = await fetch('/api/v1/pharmacy/prescription-items', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/v1/pharmacy/prescription-items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            PrescriptionID: prescriptionId,
-            MedicationID: parseInt(item.medicationId, 10) || item.medicationId,
+            PrescriptionID: rxId,
+            MedicationID: item.medicationId,
             Dosage: item.dosage,
             Duration: item.duration,
             Frequency: item.frequency
           })
         });
-        const itemJson = await itemResponse.json();
-        if (!itemJson.success) {
-          console.error("Failed to add prescription item:", itemJson.message);
-        }
       }
 
       setSigningPrescription(false);
@@ -330,24 +364,20 @@ export function useDoctorData(username) {
 
   const handleRequestLabSubmit = async (e) => {
     e.preventDefault();
-    if (!activeDoctor) return;
     try {
-      const response = await fetch('/api/v1/diagnostics/lab-tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/v1/diagnostics/lab-tests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          PatientID: parseInt(newLabForm.patientId, 10) || newLabForm.patientId,
+          PatientID: newLabForm.patientId,
           EmployeeID: activeDoctor.EmployeeID,
           TestType: newLabForm.testType,
           RequestDate: newLabForm.requestDate
         })
       });
-      const json = await response.json();
-      if (json.success) {
+      if (res.ok) {
         setShowLabRequestModal(false);
         loadAllData();
-      } else {
-        console.error("Failed to order lab:", json.message);
       }
     } catch (err) {
       console.error("Failed to order lab:", err);
@@ -356,26 +386,21 @@ export function useDoctorData(username) {
 
   const handleScheduleSurgerySubmit = async (e) => {
     e.preventDefault();
-    if (!activeDoctor) return;
     try {
-      const response = await fetch('/api/v1/diagnostics/surgeries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/v1/diagnostics/surgeries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          PatientID: parseInt(newSurgeryForm.patientId, 10) || newSurgeryForm.patientId,
+          PatientID: newSurgeryForm.patientId,
           EmployeeID: activeDoctor.EmployeeID,
-          RoomID: parseInt(newSurgeryForm.roomId, 10) || newSurgeryForm.roomId,
           SurgeryDate: newSurgeryForm.date,
           SurgeryType: newSurgeryForm.surgeryType,
-          Outcome: "Pending"
+          RoomID: newSurgeryForm.roomId
         })
       });
-      const json = await response.json();
-      if (json.success) {
+      if (res.ok) {
         setShowSurgeryRequestModal(false);
         loadAllData();
-      } else {
-        console.error("Failed to schedule surgery theatre:", json.message);
       }
     } catch (err) {
       console.error("Failed to schedule surgery theatre:", err);
@@ -386,22 +411,18 @@ export function useDoctorData(username) {
     e.preventDefault();
     if (!newLabReportForm.testId) return;
     try {
-      const response = await fetch('/api/v1/diagnostics/lab-reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/v1/diagnostics/lab-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          TestID: parseInt(newLabReportForm.testId, 10) || newLabReportForm.testId,
+          TestID: newLabReportForm.testId,
           ResultSummary: newLabReportForm.resultSummary,
-          ReportDate: new Date().toISOString().split("T")[0],
           PathologistComments: newLabReportForm.pathologistComments
         })
       });
-      const json = await response.json();
-      if (json.success) {
+      if (res.ok) {
         setShowAddLabReportModal(false);
         loadAllData();
-      } else {
-        console.error("Failed to publish lab report:", json.message);
       }
     } catch (err) {
       console.error("Failed to publish lab report:", err);
@@ -410,37 +431,40 @@ export function useDoctorData(username) {
 
   const handleUpdateRecordSubmit = async (e) => {
     e.preventDefault();
-    if (!activeDoctor) return;
     try {
-      const isNew = !editRecordForm.RecordID;
-      const url = isNew ? '/api/v1/records' : `/api/v1/records/${editRecordForm.RecordID}`;
-      const method = isNew ? 'POST' : 'PUT';
-
-      const bodyData = isNew
-        ? {
-            PatientID: parseInt(editRecordForm.PatientID, 10) || editRecordForm.PatientID,
-            EmployeeID: activeDoctor.EmployeeID,
+      const checkRes = await fetch("/api/v1/records");
+      const records = await checkRes.json();
+      const recordsList = Array.isArray(records) ? records : (records.data || []);
+      const exists = recordsList.some((r) => r.RecordID === editRecordForm.RecordID);
+      
+      if (exists) {
+        await fetch(`/api/v1/records/${editRecordForm.RecordID}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            PatientID: editRecordForm.PatientID,
+            RecordDate: editRecordForm.RecordDate,
+            FinalDiagnosis: editRecordForm.FinalDiagnosis,
+            ClinicalNotes: editRecordForm.ClinicalNotes
+          })
+        });
+      } else {
+        await fetch("/api/v1/records", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            RecordID: editRecordForm.RecordID,
+            PatientID: editRecordForm.PatientID || "PAT-001",
+            EmployeeID: "E001",
             RecordDate: editRecordForm.RecordDate || new Date().toISOString().split("T")[0],
             ClinicalNotes: editRecordForm.ClinicalNotes,
             FinalDiagnosis: editRecordForm.FinalDiagnosis
-          }
-        : {
-            ClinicalNotes: editRecordForm.ClinicalNotes,
-            FinalDiagnosis: editRecordForm.FinalDiagnosis
-          };
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyData)
-      });
-      const json = await response.json();
-      if (json.success) {
-        setShowUpdateRecordModal(false);
-        loadAllData();
-      } else {
-        console.error("Failed to submit medical record:", json.message);
+          })
+        });
       }
+
+      setShowUpdateRecordModal(false);
+      loadAllData();
     } catch (err) {
       console.error("Failed to update medical record:", err);
     }
@@ -448,40 +472,87 @@ export function useDoctorData(username) {
 
   const handleUpdateSurgerySubmit = async (e) => {
     e.preventDefault();
-    if (!activeDoctor) return;
     try {
-      const response = await fetch(`/api/v1/diagnostics/surgeries/${editSurgeryForm.SurgeryID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`/api/v1/diagnostics/surgeries/${editSurgeryForm.SurgeryID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          PatientID: parseInt(editSurgeryForm.PatientID, 10) || editSurgeryForm.PatientID,
-          EmployeeID: editSurgeryForm.EmployeeID || activeDoctor.EmployeeID,
-          RoomID: parseInt(editSurgeryForm.RoomID, 10) || editSurgeryForm.RoomID,
+          PatientID: editSurgeryForm.PatientID,
+          EmployeeID: editSurgeryForm.EmployeeID,
           SurgeryDate: editSurgeryForm.SurgeryDate,
           SurgeryType: editSurgeryForm.SurgeryType,
-          Outcome: editSurgeryForm.Outcome
+          Outcome: editSurgeryForm.Outcome,
+          RoomID: editSurgeryForm.RoomID
         })
       });
-      const json = await response.json();
-      if (json.success) {
+      if (res.ok) {
         setShowUpdateSurgeryModal(false);
         loadAllData();
-      } else {
-        console.error("Failed to update surgery:", json.message);
       }
     } catch (err) {
       console.error("Failed to update surgery scheduled event:", err);
     }
   };
 
+  // --- DOCTOR ASSOCIATED ENTITIES FILTERING ---
+  const doctorAppointments = useMemo(() => {
+    if (!activeDoctor || !activeDoctor.EmployeeID) return [];
+    const docId = String(activeDoctor.EmployeeID).toLowerCase().trim();
+    return appointments.filter(a => String(a.EmployeeID || "").toLowerCase().trim() === docId);
+  }, [appointments, activeDoctor]);
+
+  const doctorMedicalRecords = useMemo(() => {
+    if (!activeDoctor || !activeDoctor.EmployeeID) return [];
+    const docId = String(activeDoctor.EmployeeID).toLowerCase().trim();
+    return medicalRecords.filter(r => String(r.EmployeeID || "").toLowerCase().trim() === docId);
+  }, [medicalRecords, activeDoctor]);
+
+  const doctorLabTests = useMemo(() => {
+    if (!activeDoctor || !activeDoctor.EmployeeID) return [];
+    const docId = String(activeDoctor.EmployeeID).toLowerCase().trim();
+    return labTests.filter(t => String(t.EmployeeID || "").toLowerCase().trim() === docId);
+  }, [labTests, activeDoctor]);
+
+  const doctorSurgeries = useMemo(() => {
+    if (!activeDoctor || !activeDoctor.EmployeeID) return [];
+    const docId = String(activeDoctor.EmployeeID).toLowerCase().trim();
+    return surgeries.filter(s => String(s.EmployeeID || "").toLowerCase().trim() === docId);
+  }, [surgeries, activeDoctor]);
+
+  const doctorPrescriptions = useMemo(() => {
+    if (!activeDoctor || !activeDoctor.EmployeeID) return [];
+    const docId = String(activeDoctor.EmployeeID).toLowerCase().trim();
+    return prescriptions.filter(p => String(p.EmployeeID || "").toLowerCase().trim() === docId);
+  }, [prescriptions, activeDoctor]);
+
+  const doctorLabReports = useMemo(() => {
+    const doctorTestIds = new Set(doctorLabTests.map(t => String(t.TestID || "").toLowerCase().trim()));
+    return labReports.filter(rep => doctorTestIds.has(String(rep.TestID || "").toLowerCase().trim()));
+  }, [labReports, doctorLabTests]);
+
+  const doctorPatients = useMemo(() => {
+    if (!activeDoctor || !activeDoctor.EmployeeID) return [];
+    const docId = String(activeDoctor.EmployeeID).toLowerCase().trim();
+    
+    const associatedPatientIds = new Set([
+      ...appointments.filter(a => String(a.EmployeeID || "").toLowerCase().trim() === docId).map(a => String(a.PatientID || "").toLowerCase().trim()),
+      ...medicalRecords.filter(r => String(r.EmployeeID || "").toLowerCase().trim() === docId).map(r => String(r.PatientID || "").toLowerCase().trim()),
+      ...surgeries.filter(s => String(s.EmployeeID || "").toLowerCase().trim() === docId).map(s => String(s.PatientID || "").toLowerCase().trim()),
+      ...prescriptions.filter(p => String(p.EmployeeID || "").toLowerCase().trim() === docId).map(p => String(p.PatientID || "").toLowerCase().trim()),
+      ...labTests.filter(l => String(l.EmployeeID || "").toLowerCase().trim() === docId).map(l => String(l.PatientID || "").toLowerCase().trim())
+    ]);
+
+    return patients.filter(p => associatedPatientIds.has(String(p.PatientID || "").toLowerCase().trim()));
+  }, [patients, appointments, medicalRecords, surgeries, prescriptions, labTests, activeDoctor]);
+
   // --- ENHANCED PATIENT DATA LOOKUP ---
   const enrichedPatients = useMemo(() => {
-    return patients.map(pat => {
+    return doctorPatients.map(pat => {
       const insurance = insurances.find(ins => ins.InsuranceID === pat.InsuranceID) || null;
-      const patientRecords = medicalRecords.filter(rec => rec.PatientID === pat.PatientID);
+      const patientRecords = doctorMedicalRecords.filter(rec => String(rec.PatientID) === String(pat.PatientID));
       const latestClinicalRecord = patientRecords[patientRecords.length - 1] || null;
       
-      const patLabs = labTests.filter(t => t.PatientID === pat.PatientID);
+      const patLabs = doctorLabTests.filter(t => String(t.PatientID) === String(pat.PatientID));
       const pendingLabsCount = patLabs.filter(l => l.Status === "Pending").length;
       const latestLab = patLabs[patLabs.length - 1] || null;
 
@@ -494,7 +565,7 @@ export function useDoctorData(username) {
         recordsCount: patientRecords.length
       };
     });
-  }, [patients, medicalRecords, labTests, insurances]);
+  }, [doctorPatients, doctorMedicalRecords, doctorLabTests, insurances]);
 
   // --- FILTERED SELECTIONS ---
   const filteredPatients = useMemo(() => {
@@ -502,55 +573,55 @@ export function useDoctorData(username) {
     const query = searchQuery.toLowerCase();
     return enrichedPatients.filter(
       p => p.PatientName.toLowerCase().includes(query) || 
-           String(p.PatientID).toLowerCase().includes(query) || 
-           (p.NationalID && p.NationalID.includes(query)) || 
+           p.PatientID.toLowerCase().includes(query) || 
+           p.NationalID.includes(query) || 
            p.condition.toLowerCase().includes(query)
     );
   }, [enrichedPatients, searchQuery]);
 
   const filteredLabTests = useMemo(() => {
-    if (!searchQuery) return labTests;
+    if (!searchQuery) return doctorLabTests;
     const q = searchQuery.toLowerCase();
-    return labTests.filter(lab => {
-      const pat = patients.find(p => p.PatientID === lab.PatientID);
+    return doctorLabTests.filter(lab => {
+      const pat = patients.find(p => String(p.PatientID) === String(lab.PatientID));
       return String(lab.TestID).toLowerCase().includes(q) || 
              lab.TestType.toLowerCase().includes(q) || 
              (pat && pat.PatientName.toLowerCase().includes(q)) || 
              String(lab.PatientID).toLowerCase().includes(q);
     });
-  }, [labTests, searchQuery, patients]);
+  }, [doctorLabTests, searchQuery, patients]);
 
   const filteredSurgeries = useMemo(() => {
-    if (!searchQuery) return surgeries;
+    if (!searchQuery) return doctorSurgeries;
     const q = searchQuery.toLowerCase();
-    return surgeries.filter(s => {
-      const pat = patients.find(p => p.PatientID === s.PatientID);
+    return doctorSurgeries.filter(s => {
+      const pat = patients.find(p => String(p.PatientID) === String(s.PatientID));
       return String(s.SurgeryID).toLowerCase().includes(q) || 
              s.SurgeryType.toLowerCase().includes(q) || 
              (pat && pat.PatientName.toLowerCase().includes(q)) || 
              String(s.PatientID).toLowerCase().includes(q);
     });
-  }, [surgeries, searchQuery, patients]);
+  }, [doctorSurgeries, searchQuery, patients]);
 
   const selectedPatientData = useMemo(() => {
     if (!selectedPatientId) return null;
-    const basic = enrichedPatients.find(p => p.PatientID === selectedPatientId);
+    const basic = enrichedPatients.find(p => String(p.PatientID) === String(selectedPatientId));
     if (!basic) return null;
 
-    const notes = medicalRecords.filter(m => m.PatientID === selectedPatientId);
-    const labs = labTests.map(test => {
-      const report = labReports.find(rep => rep.TestID === test.TestID);
+    const notes = medicalRecords.filter(m => String(m.PatientID || "").trim() === String(selectedPatientId || "").trim());
+    const labs = doctorLabTests.map(test => {
+      const report = doctorLabReports.find(rep => String(rep.TestID) === String(test.TestID));
       return { ...test, report };
-    }).filter(t => t.PatientID === selectedPatientId);
+    }).filter(t => String(t.PatientID) === String(selectedPatientId));
 
-    const activeSurgs = surgeries.map(s => {
-      const rm = rooms.find(r => r.RoomID === s.RoomID);
+    const activeSurgs = doctorSurgeries.map(s => {
+      const rm = rooms.find(r => String(r.RoomID) === String(s.RoomID));
       return { ...s, RoomName: rm ? rm.RoomNumber : s.RoomID };
-    }).filter(s => s.PatientID === selectedPatientId);
+    }).filter(s => String(s.PatientID) === String(selectedPatientId));
 
-    const rxList = prescriptions.filter(rx => rx.PatientID === selectedPatientId).map(rx => {
-      const items = prescriptionItems.filter(item => item.PrescriptionID === rx.PrescriptionID).map(item => {
-        const drug = medications.find(m => m.MedicationID === item.MedicationID);
+    const rxList = doctorPrescriptions.filter(rx => String(rx.PatientID) === String(selectedPatientId)).map(rx => {
+      const items = prescriptionItems.filter(item => String(item.PrescriptionID) === String(rx.PrescriptionID)).map(item => {
+        const drug = medications.find(m => String(m.MedicationID) === String(item.MedicationID));
         return { ...item, drugName: drug ? drug.MedicationName : "Prescribed Formula" };
       });
       return { ...rx, items };
@@ -564,7 +635,7 @@ export function useDoctorData(username) {
       prescriptions: rxList,
       admissions: []
     };
-  }, [selectedPatientId, enrichedPatients, medicalRecords, labTests, labReports, surgeries, prescriptions, prescriptionItems, rooms, medications]);
+  }, [selectedPatientId, enrichedPatients, doctorMedicalRecords, doctorLabTests, doctorLabReports, doctorSurgeries, doctorPrescriptions, prescriptionItems, rooms, medications]);
 
   // --- CALENDAR GRID GENERATION ---
   const calendarDays = useMemo(() => {
@@ -590,17 +661,17 @@ export function useDoctorData(username) {
   };
 
   const selectedDateAppointments = useMemo(() => {
-    return appointments.map(appt => {
-      const client = patients.find(p => p.PatientID === appt.PatientID);
+    return doctorAppointments.map(appt => {
+      const client = patients.find(p => String(p.PatientID) === String(appt.PatientID));
       return { ...appt, PatientName: client ? client.PatientName : "Unknown Patient" };
     }).filter(appt => appt.AppointmentDate === selectedCalendarDate);
-  }, [appointments, selectedCalendarDate, patients]);
+  }, [doctorAppointments, selectedCalendarDate, patients]);
 
   // --- FORM ROW MANIPULATORS ---
   const addRxItemRow = () => {
     setNewRxForm(prev => ({
       ...prev,
-      items: [...prev.items, { medicationId: "1", dosage: "250mg", duration: "7 Days", frequency: "Daily" }]
+      items: [...prev.items, { medicationId: "MED-01", dosage: "250mg", duration: "7 Days", frequency: "Daily" }]
     }));
   };
 
@@ -618,29 +689,24 @@ export function useDoctorData(username) {
     }));
   };
 
-  const displayDoctorName = activeDoctor ? activeDoctor.EmployeeName : "Loading Clinician Profile...";
+  const displayDoctorName = activeDoctor ? activeDoctor.EmployeeName : "Loading Clinician...";
 
   return {
-    // Core Profile Context
-    activeDoctor,
-    displayDoctorName,
-
     // Basic layouts
     activeTab,
     setActiveTab,
     searchQuery,
     setSearchQuery,
+    displayDoctorName,
     
-    // Server collections
-    patients,
-    appointments,
-    medicalRecords,
-    labTests,
-    surgeries,
-    labReports,
-    rooms,
-    insurances,
-    medications,
+    // Server collections (doctor-filtered)
+    patients: doctorPatients,
+    allPatients: patients,
+    appointments: doctorAppointments,
+    medicalRecords: medicalRecords,
+    labTests: doctorLabTests,
+    surgeries: doctorSurgeries,
+    labReports: doctorLabReports,
     
     // Derived outputs
     filteredPatients,
@@ -677,7 +743,7 @@ export function useDoctorData(username) {
     showUpdateSurgeryModal,
     setShowUpdateSurgeryModal,
     
-    // Submission handlers
+    // Submition handlers
     handleAddAppointment,
     handleAddPrescriptionSubmit,
     handleRequestLabSubmit,
