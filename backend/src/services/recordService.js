@@ -34,3 +34,10 @@ exports.updateMedicalRecord = async (recordID, clinicalNotes, finalDiagnosis) =>
   const [result] = await db.execute(sql, [clinicalNotes, finalDiagnosis, recordID]);
   return result.affectedRows > 0;
 };
+
+// 5. Get all medical records from database
+exports.getAllMedicalRecords = async () => {
+  const sql = "SELECT * FROM MedicalRecords";
+  const [rows] = await db.execute(sql);
+  return rows;
+};
