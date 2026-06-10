@@ -27,14 +27,25 @@ exports.getInsurance = async (req, res, next) => {
 
 exports.createPatient = async (req, res, next) => {
     try {
-        const { PatientID, NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID } = req.body;
+        const { NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID } = req.body;
 
-        if (!PatientID || !PatientName || !DOB_DATE || !Gender || !Phone) {
-            return sendError(res, 'PatientID, PatientName, DOB_DATE, Gender, and Phone are required', 400);
+        // Validate required fields
+        if (!PatientName || !DOB_DATE || !Gender || !Phone) {
+            return sendError(res, 'PatientName, DOB_DATE, Gender, and Phone are required', 400);
         }
 
-        const result = await patientService.addPatient(PatientID, NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID);
-        sendSuccess(res, 'Patient created successfully', { PatientID, NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID }, 201);
+        // Validate Gender (must be 'M' or 'F')
+        if (!['M', 'F'].includes(Gender)) {
+            return sendError(res, 'Gender must be "M" or "F"', 400);
+        }
+
+        // Validate NationalID length (max 16 characters)
+        if (NationalID && NationalID.length > 16) {
+            return sendError(res, 'NationalID must not exceed 16 characters', 400);
+        }
+
+        const patientID = await patientService.addPatient(NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID);
+        sendSuccess(res, 'Patient created successfully', { PatientID: patientID, NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID }, 201);
     } catch (error) {
         next(error);
     }

@@ -14,6 +14,7 @@ router.get('/employee/:employeeId', medicalRecordController.getByEmployeeId);
 // Update record
 router.put('/:recordId', medicalRecordController.updateRecord);
 
+router.get('/', medicalRecordController.getAllMedicalRecords)
 
 module.exports = router;
 

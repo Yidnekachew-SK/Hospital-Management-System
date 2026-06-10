@@ -30,7 +30,7 @@ CREATE TABLE Rooms (
 
 CREATE TABLE Employees (
   EmployeeID varchar(10),
-  NationalID varchar(20) NOT NULL,
+  NationalID varchar(16) NOT NULL,
   EmployeeName varchar(50) NOT NULL,
   Gender char(1) NOT NULL,
   Phone char(12) NOT NULL,
@@ -40,7 +40,9 @@ CREATE TABLE Employees (
   Salary decimal(5,0) NOT NULL,
   PRIMARY KEY (EmployeeID),
   UNIQUE KEY NationalID_Email (NationalID,Email),
-  CONSTRAINT fk_employee_dept FOREIGN KEY (DeptID) REFERENCES Departments (DeptID)
+  CONSTRAINT fk_employee_dept FOREIGN KEY (DeptID) REFERENCES Departments (DeptID),
+  CONSTRAINT chk_employee_salary CHECK (Salary >= 0),
+  CONSTRAINT chk_employee_gender CHECK (Gender IN ('M','F'))
 );
 
 CREATE TABLE Insurance (
@@ -54,7 +56,7 @@ CREATE TABLE Insurance (
 
 CREATE TABLE Patients (
   PatientID int AUTO_INCREMENT,
-  NationalID varchar(20) DEFAULT NULL,
+  NationalID varchar(16) DEFAULT NULL,
   PatientName varchar(50) NOT NULL,
   DOB_DATE date NOT NULL,
   Gender char(1) NOT NULL,
@@ -65,20 +67,21 @@ CREATE TABLE Patients (
   InsuranceID int DEFAULT NULL,
   PRIMARY KEY (PatientID),
   UNIQUE KEY Patient_NationalID (NationalID),
-  CONSTRAINT fk_patient_insurance FOREIGN KEY (InsuranceID) REFERENCES Insurance (InsuranceID)
+  CONSTRAINT fk_patient_insurance FOREIGN KEY (InsuranceID) REFERENCES Insurance (InsuranceID),
+  CONSTRAINT chk_patient_gender CHECK (Gender IN ('M','F'))
 );
 
 CREATE TABLE Doctors (
   EmployeeID varchar(10) NOT NULL,
   Specialty varchar(50) NOT NULL,
-  LicenseNumber varchar(30) NOT NULL,
+  LicenseNumber varchar(15) NOT NULL,
   PRIMARY KEY (EmployeeID),
   CONSTRAINT fk_doctor_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID)
 );
 
 CREATE TABLE Nurses (
   EmployeeID varchar(10) NOT NULL,
-  Certification varchar(100) NOT NULL,
+  Certification varchar(15) NOT NULL,
   AssignedWard int NOT NULL,
   PRIMARY KEY (EmployeeID),
   CONSTRAINT fk_nurse_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID),
@@ -87,7 +90,7 @@ CREATE TABLE Nurses (
 
 CREATE TABLE Staff (
   EmployeeID varchar(10) NOT NULL,
-  StaffRole varchar(50) NOT NULL,
+  StaffRole varchar(20) NOT NULL,
   PRIMARY KEY (EmployeeID),
   CONSTRAINT fk_staff_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID)
 );
@@ -194,7 +197,7 @@ CREATE TABLE Surgeries (
   RoomID int NOT NULL,
   SurgeryDate date NOT NULL,
   SurgeryType varchar(100) NOT NULL,
-  Outcome varchar(100) DEFAULT NULL,
+  Outcome varchar(200) DEFAULT NULL,
   PRIMARY KEY (SurgeryID),
   UNIQUE (PatientID, EmployeeID, SurgeryDate, SurgeryType),
   CONSTRAINT fk_surgery_doctor FOREIGN KEY (EmployeeID) REFERENCES Doctors (EmployeeID),
@@ -297,13 +300,19 @@ CREATE TABLE Visitors (
 
 CREATE TABLE UserAccounts (
   UserID int AUTO_INCREMENT,
-  EmployeeID varchar(10) NOT NULL,
+  EmployeeID varchar(10) NULL,
+  PatientID int NULL,
   Username varchar(50) NOT NULL,
-  PasswordHash varchar(200) NOT NULL,
+  PasswordHash varchar(100) NOT NULL,
   UserRole varchar(30) NOT NULL,
   PRIMARY KEY (UserID),
   UNIQUE KEY Username (Username),
-  CONSTRAINT fk_user_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID)
+  CONSTRAINT fk_user_employee FOREIGN KEY (EmployeeID) REFERENCES Employees (EmployeeID),
+  CONSTRAINT fk_user_patient FOREIGN KEY (PatientID) REFERENCES Patients (PatientID),
+  CONSTRAINT chk_user CHECK (
+        (EmployeeID IS NOT NULL AND PatientID IS NULL) OR
+        (PatientID IS NOT NULL AND EmployeeID IS NULL)
+    )
 );
 
 CREATE TABLE logs (
@@ -332,11 +341,13 @@ CREATE ROLE IF NOT EXISTS doctor;
 CREATE ROLE IF NOT EXISTS nurse;
 CREATE ROLE IF NOT EXISTS patient;
 CREATE ROLE IF NOT EXISTS admin;
+CREATE ROLE IF NOT EXISTS staff;
 
 GRANT SELECT ON hospital_management.Patients TO doctor;
 GRANT SELECT, INSERT, UPDATE ON hospital_management.MedicalRecords TO doctor;
-GRANT SELECT, INSERT, UPDATE ON hospital_management.Appointments TO doctor;
+GRANT SELECT, INSERT, UPDATE, DELETE ON hospital_management.Appointments TO doctor;
 GRANT SELECT, INSERT, UPDATE ON hospital_management.LabTests TO doctor;
+GRANT SELECT, INSERT, UPDATE ON hospital_management.LabReports TO doctor;
 
 GRANT SELECT ON hospital_management.Patients TO nurse;
 GRANT SELECT ON hospital_management.MedicalRecords TO nurse;
