@@ -27,6 +27,9 @@ router.post('/staff', employeeController.createStaff);
 router.get('/staff', employeeController.getStaff);
 router.get('/staff/:EmployeeID', employeeController.getDetailedStaffInfo);
 router.get('/staff/all/detailed', employeeController.getAllDetailedStaffInfo);
+router.put('/doctors/:EmployeeID', employeeController.updateDoctor);
+router.put('/nurses/:EmployeeID', employeeController.updateNurse);
+router.put('/staff/:EmployeeID', employeeController.updateStaff);
 
 router.get('/counts/system', employeeController.getSystemCounts);
 

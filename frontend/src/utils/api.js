@@ -17,6 +17,10 @@ api.interceptors.request.use((config) => {
 export const getEndpoint = (tab) => {
   const map = {
     'Employees': '/employees/',
+    'Employees_All': '/employees/',
+    'Employees_Doctors': '/employees/doctors/all/detailed',
+    'Employees_Nurses': '/employees/nurses/all/detailed',
+    'Employees_Staff': '/employees/staff/all/detailed',
     'UserAccounts': '/auth/user-accounts',
     'Departments': '/employees/departments',
     'Wards': '/clinic/wards',

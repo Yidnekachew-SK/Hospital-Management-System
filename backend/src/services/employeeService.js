@@ -218,3 +218,24 @@ exports.updateDepartment = async (deptID, deptName, building) => {
     const [result] = await db.execute(sql, [deptName, building, deptID]);
     return result.affectedRows > 0;
 };
+
+// 20. Logic to update a doctor
+exports.updateDoctor = async (employeeID, specialty, licenseNumber) => {
+    const sql = "UPDATE Doctors SET Specialty = ?, LicenseNumber = ? WHERE EmployeeID = ?";
+    const [result] = await db.execute(sql, [specialty, licenseNumber, employeeID]);
+    return result.affectedRows > 0;
+};
+
+// 21. Logic to update a nurse
+exports.updateNurse = async (employeeID, certification, assignedWard) => {
+    const sql = "UPDATE Nurses SET Certification = ?, AssignedWard = ? WHERE EmployeeID = ?";
+    const [result] = await db.execute(sql, [certification, assignedWard, employeeID]);
+    return result.affectedRows > 0;
+};
+
+// 22. Logic to update a staff
+exports.updateStaff = async (employeeID, staffRole) => {
+    const sql = "UPDATE Staff SET StaffRole = ? WHERE EmployeeID = ?";
+    const [result] = await db.execute(sql, [staffRole, employeeID]);
+    return result.affectedRows > 0;
+};

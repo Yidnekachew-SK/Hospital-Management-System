@@ -253,3 +253,63 @@ exports.updateDepartment = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updateDoctor = async (req, res, next) => {
+    try {
+        const { EmployeeID } = req.params;
+        const { Specialty, LicenseNumber } = req.body;
+
+        if (!EmployeeID || !Specialty || !LicenseNumber) {
+            return sendError(res, 'EmployeeID, Specialty, and LicenseNumber are required', 400);
+        }
+
+        const updated = await employeeService.updateDoctor(EmployeeID, Specialty, LicenseNumber);
+        if (!updated) {
+            return sendError(res, 'Doctor not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Doctor updated successfully', { EmployeeID, Specialty, LicenseNumber }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateNurse = async (req, res, next) => {
+    try {
+        const { EmployeeID } = req.params;
+        const { Certification, AssignedWard } = req.body;
+
+        if (!EmployeeID || !Certification || !AssignedWard) {
+            return sendError(res, 'EmployeeID, Certification, and AssignedWard are required', 400);
+        }
+
+        const updated = await employeeService.updateNurse(EmployeeID, Certification, AssignedWard);
+        if (!updated) {
+            return sendError(res, 'Nurse not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Nurse updated successfully', { EmployeeID, Certification, AssignedWard }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateStaff = async (req, res, next) => {
+    try {
+        const { EmployeeID } = req.params;
+        const { StaffRole } = req.body;
+
+        if (!EmployeeID || !StaffRole) {
+            return sendError(res, 'EmployeeID and StaffRole are required', 400);
+        }
+
+        const updated = await employeeService.updateStaff(EmployeeID, StaffRole);
+        if (!updated) {
+            return sendError(res, 'Staff not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Staff updated successfully', { EmployeeID, StaffRole }, 200);
+    } catch (error) {
+        next(error);
+    }
+};

@@ -27,14 +27,14 @@ exports.getWards = async (req, res, next) => {
 
 exports.createRoom = async (req, res, next) => {
     try {
-        const { WardID, RoomNumber, RoomType, MaxCapacity } = req.body;
+        const { WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy } = req.body;
 
         if (!WardID || !RoomNumber || !RoomType || !MaxCapacity) {
             return sendError(res, 'WardID, RoomNumber, RoomType, and MaxCapacity are required', 400);
         }
 
-        const roomId = await clinicService.addRoom(WardID, RoomNumber, RoomType, MaxCapacity);
-        sendSuccess(res, 'Room created successfully', { RoomID: roomId, WardID, RoomNumber, RoomType, MaxCapacity }, 201);
+        const roomId = await clinicService.addRoom(WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy || 'AVAILABLE');
+        sendSuccess(res, 'Room created successfully', { RoomID: roomId, WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy: CurrentOccupancy || 'AVAILABLE' }, 201);
     } catch (error) {
         next(error);
     }
@@ -87,18 +87,18 @@ exports.updateWard = async (req, res, next) => {
 exports.updateRoom = async (req, res, next) => {
     try {
         const { RoomID } = req.params;
-        const { WardID, RoomNumber, RoomType, MaxCapacity } = req.body;
+        const { WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy } = req.body;
 
         if (!RoomID || !WardID || !RoomNumber || !RoomType || !MaxCapacity) {
             return sendError(res, 'RoomID, WardID, RoomNumber, RoomType, and MaxCapacity are required', 400);
         }
 
-        const updated = await clinicService.updateRoom(RoomID, WardID, RoomNumber, RoomType, MaxCapacity);
+        const updated = await clinicService.updateRoom(RoomID, WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy || 'AVAILABLE');
         if (!updated) {
             return sendError(res, 'Room not found or update failed', 404);
         }
 
-        sendSuccess(res, 'Room updated successfully', { RoomID, WardID, RoomNumber, RoomType, MaxCapacity }, 200);
+        sendSuccess(res, 'Room updated successfully', { RoomID, WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy: CurrentOccupancy || 'AVAILABLE' }, 200);
     } catch (error) {
         next(error);
     }

@@ -11,7 +11,7 @@ exports.addUserAccount = async (employeeID, username, passwordHash, userRole) =>
 
 // 2. Logic to get all user accounts
 exports.getAllUserAccounts = async () => {
-    const [rows] = await db.execute("SELECT * FROM UserAccounts");
+    const [rows] = await db.execute("SELECT UserID, EmployeeID, Username, UserRole AS Role FROM UserAccounts");
     return rows;
 };
 
