@@ -14,9 +14,9 @@ exports.getAllWards = async () => {
 };
 
 // 3. Logic to save a new room to the DB
-exports.addRoom = async (wardID, roomNumber, roomType, maxCapacity) => {
-    const sql = "INSERT INTO Rooms (WardID, RoomNumber, RoomType, MaxCapacity) VALUES (?, ?, ?, ?)";
-    const [result] = await db.execute(sql, [wardID, roomNumber, roomType, maxCapacity]);
+exports.addRoom = async (wardID, roomNumber, roomType, maxCapacity, currentOccupancy = 'AVAILABLE') => {
+    const sql = "INSERT INTO Rooms (WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy) VALUES (?, ?, ?, ?, ?)";
+    const [result] = await db.execute(sql, [wardID, roomNumber, roomType, maxCapacity, currentOccupancy]);
     return result.insertId;
 };
 
@@ -41,9 +41,9 @@ exports.updateWard = async (wardID, wardName, deptID, capacity) => {
 };
 
 // 7. Logic to update a room
-exports.updateRoom = async (roomID, wardID, roomNumber, roomType, maxCapacity) => {
-    const sql = "UPDATE Rooms SET WardID = ?, RoomNumber = ?, RoomType = ?, MaxCapacity = ? WHERE RoomID = ?";
-    const [result] = await db.execute(sql, [wardID, roomNumber, roomType, maxCapacity, roomID]);
+exports.updateRoom = async (roomID, wardID, roomNumber, roomType, maxCapacity, currentOccupancy = 'AVAILABLE') => {
+    const sql = "UPDATE Rooms SET WardID = ?, RoomNumber = ?, RoomType = ?, MaxCapacity = ?, CurrentOccupancy = ? WHERE RoomID = ?";
+    const [result] = await db.execute(sql, [wardID, roomNumber, roomType, maxCapacity, currentOccupancy, roomID]);
     return result.affectedRows > 0;
 };
 
