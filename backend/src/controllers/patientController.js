@@ -82,3 +82,23 @@ exports.getPatientCount = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateInsurance = async (req, res, next) => {
+    try {
+        const { InsuranceID } = req.params;
+        const { ProviderName, PolicyNumber, CoverageDetails } = req.body;
+
+        if (!InsuranceID || !ProviderName || !PolicyNumber) {
+            return sendError(res, 'InsuranceID, ProviderName, and PolicyNumber are required', 400);
+        }
+
+        const updated = await patientService.updateInsurance(InsuranceID, ProviderName, PolicyNumber, CoverageDetails);
+        if (!updated) {
+            return sendError(res, 'Insurance record not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Insurance record updated successfully', { InsuranceID, ProviderName, PolicyNumber, CoverageDetails }, 200);
+    } catch (error) {
+        next(error);
+    }
+};

@@ -72,3 +72,23 @@ exports.getSalaryPayments = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updateBill = async (req, res, next) => {
+    try {
+        const { BillID } = req.params;
+        const { PatientID, TotalAmount, InsuranceCoverageAmount, BillDate, Status } = req.body;
+
+        if (!BillID || TotalAmount === undefined || !BillDate) {
+            return sendError(res, 'BillID, TotalAmount, and BillDate are required', 400);
+        }
+
+        const updated = await financeService.updateBill(BillID, TotalAmount, InsuranceCoverageAmount, BillDate, Status);
+        if (!updated) {
+            return sendError(res, 'Bill not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Bill updated successfully', { BillID, PatientID, TotalAmount, InsuranceCoverageAmount, BillDate, Status }, 200);
+    } catch (error) {
+        next(error);
+    }
+};

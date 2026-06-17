@@ -74,6 +74,7 @@ exports.verifyUsername = async (req, res, next) => {
 
         console.log(user)
         sendSuccess(res, 'Username verified', { username: user.Username, UserID: user.UserID }, 200);
+
     } catch (error) {
         next(error);
     }
@@ -99,8 +100,7 @@ exports.verifyPassword = async (req, res, next) => {
         if (!isPasswordValid) {
             return sendError(res, 'Invalid password', 401);
         }
-
-
+        
         sendSuccess(res, 'Password verified', { match: true, UserID: user.UserID, UserRole: user.UserRole }, 200);
     } catch (error) {
         next(error);

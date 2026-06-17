@@ -38,3 +38,10 @@ exports.getPatientCount = async () => {
     const [rows] = await db.execute("SELECT COUNT(*) AS TotalPatients FROM Patients");
     return rows[0].TotalPatients;
 };
+
+// 7. Logic to update insurance details
+exports.updateInsurance = async (insuranceID, providerName, policyNumber, coverageDetails) => {
+    const sql = "UPDATE Insurance SET ProviderName = ?, PolicyNumber = ?, CoverageDetails = ? WHERE InsuranceID = ?";
+    const [result] = await db.execute(sql, [providerName, policyNumber, coverageDetails, insuranceID]);
+    return result.affectedRows > 0;
+};

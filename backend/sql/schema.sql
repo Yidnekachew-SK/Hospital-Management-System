@@ -23,7 +23,7 @@ CREATE TABLE Rooms (
   RoomNumber varchar(10) NOT NULL,
   RoomType varchar(20) NOT NULL,
   MaxCapacity int NOT NULL,
-  CurrentOccupancy int DEFAULT 0,
+  CurrentOccupancy varchar(20) DEFAULT 'AVAILABLE',
   PRIMARY KEY (RoomID),
   CONSTRAINT fk_room_ward FOREIGN KEY (WardID) REFERENCES Wards (WardID)
 );
