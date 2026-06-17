@@ -39,3 +39,18 @@ exports.countVisitorsByPatient = async (patientID) => {
     const [rows] = await db.execute(sql, [patientID]);
     return rows[0].VisitorCount;
 };
+
+// 7. Logic to update an emergency case
+exports.updateEmergencyCase = async (caseID, patientID, employeeID, admissionID, admissionTime, severityLevel, outcome) => {
+    const sql = "UPDATE EmergencyCases SET PatientID = ?, EmployeeID = ?, AdmissionID = ?, AdmissionTime = ?, SeverityLevel = ?, Outcome = ? WHERE CaseID = ?";
+    const [result] = await db.execute(sql, [patientID, employeeID, admissionID || null, admissionTime, severityLevel, outcome, caseID]);
+    return result.affectedRows > 0;
+};
+
+// 8. Logic to update a visitor
+exports.updateVisitor = async (visitorID, patientID, visitorName, relationToPatient, visitDate) => {
+    const sql = "UPDATE Visitors SET PatientID = ?, VisitorName = ?, RelationToPatient = ?, VisitDate = ? WHERE VisitorID = ?";
+    const [result] = await db.execute(sql, [patientID, visitorName, relationToPatient, visitDate, visitorID]);
+    return result.affectedRows > 0;
+};
+

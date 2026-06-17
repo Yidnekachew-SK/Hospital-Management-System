@@ -121,18 +121,18 @@ exports.deleteAppointment = async (req, res, next) => {
 exports.updateAdmission = async (req, res, next) => {
     try {
         const { AdmissionID } = req.params;
-        const { DischargeDate, PrimaryDiagnosis } = req.body;
+        const { RoomID, AdmissionDate, DischargeDate, PrimaryDiagnosis } = req.body;
 
         if (!AdmissionID) {
             return sendError(res, 'AdmissionID is required', 400);
         }
 
-        const updated = await appointmentService.updateAdmission(AdmissionID, DischargeDate, PrimaryDiagnosis);
+        const updated = await appointmentService.updateAdmission(AdmissionID, RoomID, AdmissionDate, DischargeDate, PrimaryDiagnosis);
         if (!updated) {
             return sendError(res, 'Admission not found or update failed', 404);
         }
 
-        sendSuccess(res, 'Admission updated successfully', { AdmissionID, DischargeDate, PrimaryDiagnosis }, 200);
+        sendSuccess(res, 'Admission updated successfully', { AdmissionID, RoomID, AdmissionDate, DischargeDate, PrimaryDiagnosis }, 200);
     } catch (error) {
         next(error);
     }

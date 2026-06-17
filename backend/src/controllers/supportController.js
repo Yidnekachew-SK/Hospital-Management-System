@@ -80,3 +80,44 @@ exports.countVisitorsByPatient = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updateEmergency = async (req, res, next) => {
+    try {
+        const { CaseID } = req.params;
+        const { PatientID, EmployeeID, AdmissionID, AdmissionTime, SeverityLevel, Outcome } = req.body;
+
+        if (!CaseID || !PatientID || !EmployeeID || !AdmissionTime || !SeverityLevel) {
+            return sendError(res, 'CaseID, PatientID, EmployeeID, AdmissionTime, and SeverityLevel are required', 400);
+        }
+
+        const updated = await supportService.updateEmergencyCase(CaseID, PatientID, EmployeeID, AdmissionID, AdmissionTime, SeverityLevel, Outcome);
+        if (!updated) {
+            return sendError(res, 'Emergency case not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Emergency case updated successfully', { CaseID, PatientID, EmployeeID, AdmissionID, AdmissionTime, SeverityLevel, Outcome }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateVisitor = async (req, res, next) => {
+    try {
+        const { VisitorID } = req.params;
+        const { PatientID, VisitorName, RelationToPatient, VisitDate } = req.body;
+
+        if (!VisitorID || !PatientID || !VisitorName || !VisitDate) {
+            return sendError(res, 'VisitorID, PatientID, VisitorName, and VisitDate are required', 400);
+        }
+
+        const updated = await supportService.updateVisitor(VisitorID, PatientID, VisitorName, RelationToPatient, VisitDate);
+        if (!updated) {
+            return sendError(res, 'Visitor not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'Visitor updated successfully', { VisitorID, PatientID, VisitorName, RelationToPatient, VisitDate }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+

@@ -49,8 +49,8 @@ export default function AdmissionManager({
       AdmissionID: admission.AdmissionID || "",
       PatientID: admission.PatientID || "",
       RoomID: admission.RoomID || "",
-      AdmissionDate: admission.AdmissionDate || new Date().toISOString().split("T")[0],
-      DischargeDate: admission.DischargeDate || "",
+      AdmissionDate: admission.AdmissionDate ? String(admission.AdmissionDate).substring(0, 10) : new Date().toISOString().split("T")[0],
+      DischargeDate: admission.DischargeDate ? String(admission.DischargeDate).substring(0, 10) : "",
       PrimaryDiagnosis: admission.PrimaryDiagnosis || "",
     });
     setIsEditing(true);

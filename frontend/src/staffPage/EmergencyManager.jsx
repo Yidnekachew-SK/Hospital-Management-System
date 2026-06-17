@@ -17,7 +17,7 @@ export default function EmergencyManager({
     PatientID: "",
     EmployeeID: "",
     AdmissionID: "",
-    AdmissionTime: new Date().toISOString().replace("T", " ").split(".")[0],
+    AdmissionTime: new Date().toISOString().substring(0, 16),
     SeverityLevel: "Moderate",
     Outcome: "Ongoing"
   });
@@ -49,7 +49,7 @@ export default function EmergencyManager({
       PatientID: caseItem.PatientID || "",
       EmployeeID: caseItem.EmployeeID || "",
       AdmissionID: caseItem.AdmissionID || "",
-      AdmissionTime: caseItem.AdmissionTime || new Date().toISOString().replace("T", " ").split(".")[0],
+      AdmissionTime: caseItem.AdmissionTime ? String(caseItem.AdmissionTime).replace(" ", "T").substring(0, 16) : new Date().toISOString().substring(0, 16),
       SeverityLevel: caseItem.SeverityLevel || "Moderate",
       Outcome: caseItem.Outcome || "Ongoing"
     });
@@ -67,7 +67,7 @@ export default function EmergencyManager({
       PatientID: patients[0]?.PatientID || "",
       EmployeeID: employees[0]?.EmployeeID || "",
       AdmissionID: "",
-      AdmissionTime: new Date().toISOString().replace("T", " ").split(".")[0],
+      AdmissionTime: new Date().toISOString().substring(0, 16),
       SeverityLevel: "Moderate",
       Outcome: "Ongoing"
     });
@@ -128,12 +128,14 @@ export default function EmergencyManager({
       if (isEditing) {
         await onUpdate(formData.CaseID, {
           ...formData,
+          AdmissionTime: formData.AdmissionTime.replace("T", " "), // Format for MySQL
           PatientID: finalPatientID // Map it consistently
         });
         setSuccessMessage(`Emergency Case ${formData.CaseID} successfully updated!`);
       } else {
         const payload = { 
           ...formData, 
+          AdmissionTime: formData.AdmissionTime.replace("T", " "), // Format for MySQL
           PatientID: finalPatientID 
         };
         delete payload.CaseID; // API autogenerates blank IDs
@@ -478,7 +480,7 @@ export default function EmergencyManager({
                 Incident Registry Date & Time
               </label>
               <input
-                type="text"
+                type="datetime-local"
                 value={formData.AdmissionTime}
                 onChange={(e) => setFormData(prev => ({ ...prev, AdmissionTime: e.target.value }))}
                 className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"

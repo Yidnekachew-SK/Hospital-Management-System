@@ -55,9 +55,9 @@ exports.deleteAppointment = async (appointmentID) => {
 };
 
 // 9. Logic to update an admission
-exports.updateAdmission = async (admissionID, dischargeDate, primaryDiagnosis) => {
-    const sql = "UPDATE Admissions SET DischargeDate = ?, PrimaryDiagnosis = ? WHERE AdmissionID = ?";
-    const [result] = await db.execute(sql, [dischargeDate, primaryDiagnosis, admissionID]);
+exports.updateAdmission = async (admissionID, roomID, admissionDate, dischargeDate, primaryDiagnosis) => {
+    const sql = "UPDATE Admissions SET RoomID = ?, AdmissionDate = ?, DischargeDate = ?, PrimaryDiagnosis = ? WHERE AdmissionID = ?";
+    const [result] = await db.execute(sql, [roomID, admissionDate, dischargeDate, primaryDiagnosis, admissionID]);
     return result.affectedRows > 0;
 };
 

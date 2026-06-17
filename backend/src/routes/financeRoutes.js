@@ -13,4 +13,8 @@ router.get('/payments', financeController.getPayments);
 router.post('/salary-payments', financeController.paySalary);
 router.get('/salary-payments', financeController.getSalaryPayments);
 
+// Update route
+router.put('/bills/:BillID', financeController.updateBill);
+
 module.exports = router;
+

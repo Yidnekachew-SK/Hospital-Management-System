@@ -12,4 +12,9 @@ router.get('/visitors', supportController.getVisitors);
 router.get('/visitors/patient/:PatientID', supportController.getVisitorsByPatient);
 router.get('/visitors/patient/:PatientID/count', supportController.countVisitorsByPatient);
 
+// Update routes
+router.put('/emergencies/:CaseID', supportController.updateEmergency);
+router.put('/visitors/:VisitorID', supportController.updateVisitor);
+
 module.exports = router;
+

@@ -25,7 +25,7 @@ export default function VisitorManager({
       PatientID: vis.PatientID || "",
       VisitorName: vis.VisitorName || "",
       RelationToPatient: vis.RelationToPatient || "Friend",
-      VisitDate: vis.VisitDate || new Date().toISOString().split("T")[0]
+      VisitDate: vis.VisitDate ? String(vis.VisitDate).substring(0, 10) : new Date().toISOString().split("T")[0]
     });
     setIsEditing(true);
     setSuccessMessage("");

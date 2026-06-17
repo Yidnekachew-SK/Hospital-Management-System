@@ -45,20 +45,20 @@ export default function StaffPage({ username, onLogout }) {
         getArray("/api/v1/clinic/rooms"),
         getArray("/api/v1/employees/doctors/all/detailed"),
         getArray("/api/v1/appointments/admissions"),
-        getArray("/api/v1/support/emergency-cases"),
+        getArray("/api/v1/support/emergencies"),
         getArray("/api/v1/support/visitors"),
         getArray("/api/v1/finance/bills"),
         getArray("/api/v1/finance/payments")
       ]);
 
-      setPatients(pats || []);
-      setRooms(rms || []);
-      setEmployees(emps || []);
-      setAdmissions(adms || []);
-      setEmergencyCases(emg || []);
-      setVisitors(vis || []);
-      setBills(bls || []);
-      setPayments(pyms || []);
+      setPatients(pats?.data?.patients || (Array.isArray(pats) ? pats : []));
+      setRooms(rms?.data?.rooms || (Array.isArray(rms) ? rms : []));
+      setEmployees(emps?.data?.doctorInfo || (Array.isArray(emps) ? emps : []));
+      setAdmissions(adms?.data?.admissions || (Array.isArray(adms) ? adms : []));
+      setEmergencyCases(emg?.data?.emergencies || (Array.isArray(emg) ? emg : []));
+      setVisitors(vis?.data?.visitors || (Array.isArray(vis) ? vis : []));
+      setBills(bls?.data?.bills || (Array.isArray(bls) ? bls : []));
+      setPayments(pyms?.data?.payments || (Array.isArray(pyms) ? pyms : []));
     } catch (err) {
       console.error("[Addis Staff Portal Sync Exception]:", err);
     } finally {
@@ -74,10 +74,14 @@ export default function StaffPage({ username, onLogout }) {
 
   // ADMISSIONS
   const handleAddAdmission = async (formData) => {
+    const sanitized = {
+      ...formData,
+      DischargeDate: formData.DischargeDate || null
+    };
     const res = await fetch("/api/v1/appointments/admissions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(sanitized)
     });
     if (!res.ok) throw new Error("Could not add admission");
     const json = await res.json();
@@ -86,10 +90,14 @@ export default function StaffPage({ username, onLogout }) {
   };
 
   const handleUpdateAdmission = async (id, updatedData) => {
+    const sanitized = {
+      ...updatedData,
+      DischargeDate: updatedData.DischargeDate || null
+    };
     const res = await fetch(`/api/v1/appointments/admissions/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedData)
+      body: JSON.stringify(sanitized)
     });
     if (!res.ok) throw new Error("Could not update admission");
     await loadAllStaffData();
@@ -105,10 +113,14 @@ export default function StaffPage({ username, onLogout }) {
 
   // EMERGENCY CASES
   const handleAddEmergency = async (formData) => {
-    const res = await fetch("/api/v1/support/emergency-cases", {
+    const sanitized = {
+      ...formData,
+      AdmissionID: formData.AdmissionID || null
+    };
+    const res = await fetch("/api/v1/support/emergencies", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(sanitized)
     });
     if (!res.ok) throw new Error("Could not register emergency case");
     const json = await res.json();
@@ -117,10 +129,14 @@ export default function StaffPage({ username, onLogout }) {
   };
 
   const handleUpdateEmergency = async (id, updatedData) => {
-    const res = await fetch(`/api/v1/support/emergency-cases/${encodeURIComponent(id)}`, {
+    const sanitized = {
+      ...updatedData,
+      AdmissionID: updatedData.AdmissionID || null
+    };
+    const res = await fetch(`/api/v1/support/emergencies/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedData)
+      body: JSON.stringify(sanitized)
     });
     if (!res.ok) throw new Error("Could not edit emergency entry");
     await loadAllStaffData();
@@ -171,6 +187,7 @@ export default function StaffPage({ username, onLogout }) {
     if (!res.ok) throw new Error("Could not update billing record");
     await loadAllStaffData();
   };
+
 
   // PAYMENTS (POST/Record process triggers automated state checks)
   const handleRecordPayment = async (formData) => {
