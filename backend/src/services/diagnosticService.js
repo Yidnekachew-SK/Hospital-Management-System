@@ -21,12 +21,18 @@ exports.addLabReport = async (testID, resultSummary, reportDate, pathologistComm
         const sql = "INSERT INTO LabReports (TestID, ResultSummary, ReportDate, PathologistComments) VALUES (?, ?, ?, ?)";
         const [result] = await connection.execute(sql, [testID, resultSummary, reportDate, pathologistComments]);
         
+        // NEW CODE ADDED: Update the associated LabTest's Status to 'Done'
         const updateSql = "UPDATE LabTests SET Status = 'Done' WHERE TestID = ?";
         await connection.execute(updateSql, [testID]);
-
+        
+        await connection.commit();
         return result.insertId;
     } catch (err) {
+        await connection.rollback();
         throw err;
+    } finally {
+        connection.release();
+    }
 };
 
 // 4. Logic to get all lab reports

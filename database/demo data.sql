@@ -135,10 +135,10 @@ INSERT INTO PrescriptionItems (PrescriptionID, MedicationID, Dosage, Duration, F
 (3,3,'250mg','10 days','Three times daily');
 
 -- LabTests
-INSERT INTO LabTests (PatientID, EmployeeID, TestType, RequestDate, Status) VALUES
-(1,'E001','Blood Test','2026-05-20','Done'),
-(2,'E002','MRI Scan','2026-05-21','Done'),
-(3,'E003','X-Ray','2026-05-22','Pending');
+INSERT INTO LabTests (PatientID, EmployeeID, TestType, RequestDate) VALUES
+(1,'E001','Blood Test','2026-05-20', 'Done'),
+(2,'E002','MRI Scan','2026-05-21', 'Done'),
+(3,'E003','X-Ray','2026-05-22', 'Pending');
 
 -- LabReports
 INSERT INTO LabReports (TestID, ResultSummary, ReportDate, PathologistComments) VALUES
