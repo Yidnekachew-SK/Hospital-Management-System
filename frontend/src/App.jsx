@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import LoginPage from './login/loginPage'; 
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './adminPage/AdminDashboard';
 import PatientPage from './PatientPage/PatientPage';
 
 function App() {

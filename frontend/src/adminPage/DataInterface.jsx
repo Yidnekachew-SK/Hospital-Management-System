@@ -15,6 +15,15 @@ const StatusBadge = ({ value, context }) => {
       if (val === 'MAINTENANCE' || val === 'FAILED') return { label: 'MAINTENANCE', style: 'bg-amber-50 text-amber-600' };
       return { label: 'AVAILABLE', style: 'bg-blue-50 text-blue-600' };
     }
+    if (context === 'UserAccounts') {
+      const roleStyles = {
+        ADMIN: 'bg-indigo-50 text-indigo-600',
+        DOCTOR: 'bg-sky-50 text-sky-600',
+        NURSE: 'bg-pink-50 text-pink-600',
+        STAFF: 'bg-slate-100 text-slate-600'
+      };
+      return { label: val, style: roleStyles[val] || 'bg-slate-50 text-slate-600' };
+    }
     // Billing and others
     if (val === 'PAID' || val === 'COMPLETED' || val === 'ACTIVE') return { label: 'COMPLETED', style: 'bg-emerald-50 text-emerald-600' };
     if (val === 'FAILED' || val === 'TERMINATED') return { label: 'FAILED', style: 'bg-red-50 text-red-600' };

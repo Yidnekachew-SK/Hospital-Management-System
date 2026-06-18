@@ -55,13 +55,13 @@ const AdminDashboard = () => {
     }
 
     const schema = {
-      'UserAccounts': { cols: ['UserID', 'EmployeeID', 'Username', 'Role'], fields: ['EmployeeID', 'Username', 'PasswordHash', 'Role'] },
+      'UserAccounts': { cols: ['UserID', 'EmployeeID', 'Username', 'UserRole'], fields: ['EmployeeID', 'Username', 'PasswordHash', 'UserRole'] },
       'Departments': { cols: ['DeptID', 'DeptName', 'Building'], fields: ['DeptName', 'Building'] },
       'Wards': { cols: ['WardID', 'WardName', 'DeptID', 'Capacity'], fields: ['WardName', 'DeptID', 'Capacity'] },
       'Rooms': { cols: ['RoomID', 'WardID', 'RoomNumber', 'RoomType', 'MaxCapacity', 'CurrentOccupancy'], fields: ['WardID', 'RoomNumber', 'RoomType', 'MaxCapacity', 'CurrentOccupancy'] },
       'Patients': { cols: ['PatientID', 'NationalID', 'PatientName', 'DOB_DATE', 'Gender', 'Phone', 'InsuranceID'], fields: ['NationalID', 'PatientName', 'DOB_DATE', 'Gender', 'Region', 'City', 'HouseNumber', 'Phone', 'InsuranceID'] },
       'Insurance': { cols: ['InsuranceID', 'ProviderName', 'PolicyNumber', 'CoverageDetails'], fields: ['ProviderName', 'PolicyNumber', 'CoverageDetails'] },
-      'Billing': { cols: ['BillID', 'PatientID', 'TotalAmount', 'BillDate', 'Status'], fields: ['PatientID', 'TotalAmount', 'BillDate', 'Status'] },
+      'Billing': { cols: ['BillID', 'PatientID', 'TotalAmount', 'InsuranceCoverageAmount', 'BillDate', 'Status'], fields: ['PatientID', 'TotalAmount', 'InsuranceCoverageAmount', 'BillDate', 'Status'] },
       'Logs': { cols: ['LogID', 'TableName', 'ActionType', 'ActionDate', 'Description'], fields: [] },
       'ActivityLog': { cols: ['ActivityID', 'UserID', 'LoginTime', 'LogoutTime'], fields: [] }
     };
@@ -305,6 +305,8 @@ const AdminDashboard = () => {
             await api.post('/employees/', formData);
             await api.post('/employees/staff', formData);
           }
+        } else if (activeTab === 'UserAccounts') {
+          await api.post('/auth/register', formData);
         } else {
           await api.post(url, formData);
         }
@@ -421,7 +423,7 @@ const AdminDashboard = () => {
                {current.fields.map(f => (
                  <div key={f}>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{f.replace('_', ' ')}</label>
-                    {f.toLowerCase().includes('status') || f === 'Occupancy' || f === 'CurrentOccupancy' || f === 'Gender' || f === 'Role' ? (
+                    {f.toLowerCase().includes('status') || f === 'Occupancy' || f === 'CurrentOccupancy' || f === 'Gender' || f === 'Role' || f === 'UserRole' ? (
                       <select 
                         value={formData[f] || ''}
                         onChange={(e) => setFormData({ ...formData, [f]: e.target.value })}
@@ -430,7 +432,7 @@ const AdminDashboard = () => {
                          <option value="">Select Option...</option>
                          {f === 'Gender' ? (
                            <><option value="M">MALE (M)</option><option value="F">FEMALE (F)</option></>
-                         ) : f === 'Role' ? (
+                         ) : (f === 'Role' || f === 'UserRole') ? (
                            <><option value="Admin">Admin</option><option value="Doctor">Doctor</option><option value="Nurse">Nurse</option><option value="Staff">Staff</option></>
                          ) : activeTab === 'Employees' ? (
                            <><option value="ACTIVE">ACTIVE</option><option value="PENDING">PENDING</option><option value="ON LEAVE">ON LEAVE</option><option value="TERMINATED">TERMINATED</option></>
