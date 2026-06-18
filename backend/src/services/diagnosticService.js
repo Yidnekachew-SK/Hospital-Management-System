@@ -15,9 +15,24 @@ exports.getAllLabTests = async () => {
 
 // 3. Logic to save a new lab report to the DB
 exports.addLabReport = async (testID, resultSummary, reportDate, pathologistComments) => {
-    const sql = "INSERT INTO LabReports (TestID, ResultSummary, ReportDate, PathologistComments) VALUES (?, ?, ?, ?)";
-    const [result] = await db.execute(sql, [testID, resultSummary, reportDate, pathologistComments]);
-    return result.insertId;
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+        const sql = "INSERT INTO LabReports (TestID, ResultSummary, ReportDate, PathologistComments) VALUES (?, ?, ?, ?)";
+        const [result] = await connection.execute(sql, [testID, resultSummary, reportDate, pathologistComments]);
+        
+        // NEW CODE ADDED: Update the associated LabTest's Status to 'Done'
+        const updateSql = "UPDATE LabTests SET Status = 'Done' WHERE TestID = ?";
+        await connection.execute(updateSql, [testID]);
+        
+        await connection.commit();
+        return result.insertId;
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
+    }
 };
 
 // 4. Logic to get all lab reports
