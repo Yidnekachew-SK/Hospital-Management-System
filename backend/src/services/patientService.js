@@ -13,10 +13,10 @@ exports.getAllInsurance = async () => {
     return rows;
 };
 
-// 3. Logic to save a new patient to the DB
-exports.addPatient = async (patientID, nationalID, patientName, dobDate, gender, region, city, houseNumber, phone, insuranceID) => {
-    const sql = "INSERT INTO Patients (PatientID, NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    const [result] = await db.execute(sql, [patientID, nationalID, patientName, dobDate, gender, region, city, houseNumber, phone, insuranceID]);
+// 3. Logic to save a new patient to the DB (PatientID is AUTO_INCREMENT)
+exports.addPatient = async (nationalID, patientName, dobDate, gender, region, city, houseNumber, phone, insuranceID) => {
+    const sql = "INSERT INTO Patients (NationalID, PatientName, DOB_DATE, Gender, Region, City, HouseNumber, Phone, InsuranceID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    const [result] = await db.execute(sql, [nationalID, patientName, dobDate, gender, region, city, houseNumber, phone, insuranceID]);
     return result.insertId;
 };
 

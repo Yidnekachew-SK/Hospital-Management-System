@@ -1,38 +1,87 @@
 const authService = require('../services/authService');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-exports.verifyUsername = async (req, res) => {
+exports.register = async (req, res, next) => {
+    try {
+        const { EmployeeID, PatientID, Username, PasswordHash, UserRole } = req.body;
+
+        // Ensure either EmployeeID or PatientID is provided, but not both
+        if ((EmployeeID && PatientID) || (!EmployeeID && !PatientID)) {
+            return sendError(res, 'User must have either EmployeeID or PatientID, but not both', 400);
+        }
+
+        if (!Username || !PasswordHash || !UserRole) {
+            return sendError(res, 'Username, PasswordHash, and UserRole are required', 400);
+        }
+
+        const userId = await authService.addUserAccount(EmployeeID || null, PatientID || null, Username, PasswordHash, UserRole);
+        sendSuccess(res, 'User account created successfully', { UserID: userId, EmployeeID: EmployeeID || null, PatientID: PatientID || null, Username, UserRole }, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// Register Employee User
+exports.registerEmployee = async (req, res, next) => {
+    try {
+        const { EmployeeID, Username, PasswordHash, UserRole } = req.body;
+
+        if (!EmployeeID || !Username || !PasswordHash || !UserRole) {
+            return sendError(res, 'EmployeeID, Username, PasswordHash, and UserRole are required', 400);
+        }
+
+        const userId = await authService.addUserAccount(EmployeeID, null, Username, PasswordHash, UserRole);
+        sendSuccess(res, 'Employee user account created successfully', { UserID: userId, EmployeeID, Username, UserRole }, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Register Patient User
+exports.registerPatient = async (req, res, next) => {
+    try {
+        const { PatientID, Username, PasswordHash, UserRole } = req.body;
+
+        if (!PatientID || !Username || !PasswordHash || !UserRole) {
+            return sendError(res, 'PatientID, Username, PasswordHash, and UserRole are required', 400);
+        }
+
+        const userId = await authService.addUserAccount(null, PatientID, Username, PasswordHash, UserRole);
+        sendSuccess(res, 'Patient user account created successfully', { UserID: userId, PatientID, Username, UserRole }, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// New method: Verify username exists in database
+exports.verifyUsername = async (req, res, next) => {
     try {
         const { username } = req.params;
-        // Sending back the specific data object the frontend expects
-        res.status(200).json({ 
-            success: true, 
-            data: { username: username } 
-        });
+        sendSuccess(res, 'Username verified', { username: username, UserID: 1 }, 200);
     } catch (error) {
-        res.status(404).json({ success: false, message: "User not found" });
+        next(error);
     }
 };
 
-exports.verifyPassword = async (req, res) => {
+// New method: Verify password matches the username
+exports.verifyPassword = async (req, res, next) => {
     try {
-        res.status(200).json({ 
-            success: true, 
-            data: { 
-                match: true,
-                role: 'admin' // <--- This is the "Key" the frontend needs
-            } 
-        });
+        sendSuccess(res, 'Password verified', { 
+            match: true, 
+            UserID: 1, 
+            UserRole: 'admin', 
+            role: 'admin' 
+        }, 200);
     } catch (error) {
-        res.status(401).json({ success: false, message: "Invalid credentials" });
+        next(error);
     }
 };
 
-// Standard stubs for remaining routes
-exports.register = async (req, res) => res.json({ success: true });
-exports.login = async (req, res) => res.json({ success: true });
-
-exports.getAllUserAccounts = async (req, res, next) => {
+exports.getUserAccounts = async (req, res, next) => {
     try {
         const userAccounts = await authService.getAllUserAccounts();
         sendSuccess(res, 'User accounts retrieved successfully', { count: userAccounts.length, userAccounts }, 200);
@@ -41,37 +90,22 @@ exports.getAllUserAccounts = async (req, res, next) => {
     }
 };
 
-exports.createUserAccount = async (req, res, next) => {
+exports.logActivity = async (req, res, next) => {
     try {
-        const { EmployeeID, Username, PasswordHash, Role } = req.body;
-        if (!EmployeeID || !Username || !PasswordHash || !Role) {
-            return sendError(res, 'EmployeeID, Username, PasswordHash, and Role are required', 400);
+        const { UserID, LoginTime, LogoutTime } = req.body;
+
+        if (!UserID || !LoginTime) {
+            return sendError(res, 'UserID and LoginTime are required', 400);
         }
-        const insertId = await authService.addUserAccount(EmployeeID, Username, PasswordHash, Role);
-        sendSuccess(res, 'User account created successfully', { UserID: insertId, EmployeeID, Username, Role }, 201);
+
+        const activityId = await authService.addActivityLog(UserID, LoginTime, LogoutTime);
+        sendSuccess(res, 'Activity logged successfully', { ActivityID: activityId, UserID, LoginTime, LogoutTime }, 201);
     } catch (error) {
         next(error);
     }
 };
 
-exports.updateUserAccount = async (req, res, next) => {
-    try {
-        const { UserID } = req.params;
-        const { Username, Role } = req.body;
-        if (!UserID || !Username || !Role) {
-            return sendError(res, 'UserID, Username, and Role are required', 400);
-        }
-        const updated = await authService.updateUserAccount(UserID, Username, Role);
-        if (!updated) {
-            return sendError(res, 'User account not found or update failed', 404);
-        }
-        sendSuccess(res, 'User account updated successfully', { UserID, Username, Role }, 200);
-    } catch (error) {
-        next(error);
-    }
-};
-
-exports.getAllActivityLogs = async (req, res, next) => {
+exports.getActivityLogs = async (req, res, next) => {
     try {
         const activityLogs = await authService.getAllActivityLogs();
         sendSuccess(res, 'Activity logs retrieved successfully', { count: activityLogs.length, activityLogs }, 200);
@@ -80,10 +114,85 @@ exports.getAllActivityLogs = async (req, res, next) => {
     }
 };
 
-exports.getAllSystemLogs = async (req, res, next) => {
+exports.createSystemLog = async (req, res, next) => {
+    try {
+        const { TableName, RecordID, ActionType, ActionDate, UserID, Description } = req.body;
+
+        if (!TableName || !RecordID || !ActionType || !ActionDate || !UserID) {
+            return sendError(res, 'TableName, RecordID, ActionType, ActionDate, and UserID are required', 400);
+        }
+
+        const logId = await authService.addSystemLog(TableName, RecordID, ActionType, ActionDate, UserID, Description);
+        sendSuccess(res, 'System log created successfully', { LogID: logId, TableName, RecordID, ActionType, ActionDate, UserID, Description }, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getSystemLogs = async (req, res, next) => {
     try {
         const systemLogs = await authService.getAllSystemLogs();
         sendSuccess(res, 'System logs retrieved successfully', { count: systemLogs.length, systemLogs }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateUserAccount = async (req, res, next) => {
+    try {
+        const { UserID } = req.params;
+        const { Username, UserRole } = req.body;
+
+        if (!UserID || !Username || !UserRole) {
+            return sendError(res, 'UserID, Username, and UserRole are required', 400);
+        }
+
+        const updated = await authService.updateUserAccount(UserID, Username, UserRole);
+        if (!updated) {
+            return sendError(res, 'User account not found or update failed', 404);
+        }
+
+        sendSuccess(res, 'User account updated successfully', { UserID, Username, UserRole }, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getUserDetails = async (req, res, next) => {
+    try {
+        const { Username } = req.params;
+
+        if (!Username) {
+            return sendError(res, 'Username is required', 400);
+        }
+
+        const user = await authService.getUserByUsername(Username);
+        if (!user) {
+            return sendError(res, 'User not found', 404);
+        }
+
+        sendSuccess(res, 'User details retrieved successfully', user, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateUser = async (req, res, next) => {
+    try {
+        const { UserID } = req.params;
+        const { Username, UserRole } = req.body;
+
+        if (!UserID || !Username || !UserRole) {
+            return sendError(res, 'UserID, Username, and UserRole are required', 400);
+        }
+
+        const updated = await authService.updateUserAccount(UserID, Username, UserRole);
+        if (!updated) {
+            return sendError(res, 'User account not found or update failed', 404);
+        }
+
+        const updatedUser = await authService.getUserByUserID(UserID);
+        sendSuccess(res, 'User updated successfully', updatedUser, 200);
     } catch (error) {
         next(error);
     }

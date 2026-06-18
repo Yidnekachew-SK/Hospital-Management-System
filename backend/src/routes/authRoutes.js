@@ -1,17 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { verifyToken, checkRole } = require('../middleware/authMiddleware');
 
-// Clean endpoints for the login handshake
+console.log("Checking Auth Controller Import:", authController);
+
+router.post('/register', authController.register);
+router.post('/register/employee', authController.registerEmployee);
+router.post('/register/patient', authController.registerPatient);
+
+// New endpoints for frontend verification steps
 router.get('/verify-username/:username', authController.verifyUsername);
 router.get('/verify-password', authController.verifyPassword);
-router.post('/login', authController.login);
 
-// Management and Logs endpoints
-router.get('/user-accounts', authController.getAllUserAccounts);
-router.post('/user-accounts', authController.createUserAccount);
-router.put('/user-accounts/:UserID', authController.updateUserAccount);
-router.get('/activity-logs', authController.getAllActivityLogs);
-router.get('/system-logs', authController.getAllSystemLogs);
+router.get('/user/:Username', verifyToken, authController.getUserDetails);
+router.put('/user/:UserID', verifyToken, authController.updateUser);
+
+router.get('/user-accounts', verifyToken, checkRole(['admin']), authController.getUserAccounts);
+router.put('/user-accounts/:UserID', verifyToken, checkRole(['admin']), authController.updateUserAccount);
+
+router.post('/activity-logs', verifyToken, authController.logActivity);
+router.get('/activity-logs', verifyToken, authController.getActivityLogs);
+
+router.post('/system-logs', verifyToken, checkRole(['admin']), authController.createSystemLog);
+router.get('/system-logs', verifyToken, checkRole(['admin']), authController.getSystemLogs);
 
 module.exports = router;

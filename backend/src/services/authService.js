@@ -1,17 +1,23 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 
-// 1. Logic to create a user account with hashed password
-exports.addUserAccount = async (employeeID, username, passwordHash, userRole) => {
+// 1. Logic to create a user account with hashed password (supports both EmployeeID and PatientID)
+exports.addUserAccount = async (employeeID, patientID, username, passwordHash, userRole) => {
     const hashedPassword = await bcrypt.hash(passwordHash, 10);
-    const sql = "INSERT INTO UserAccounts (EmployeeID, Username, PasswordHash, UserRole) VALUES (?, ?, ?, ?)";
-    const [result] = await db.execute(sql, [employeeID, username, hashedPassword, userRole]);
+    
+    // Ensure only one of EmployeeID or PatientID is provided
+    if ((employeeID && patientID) || (!employeeID && !patientID)) {
+        throw new Error('User must have either EmployeeID or PatientID, but not both');
+    }
+    
+    const sql = "INSERT INTO UserAccounts (EmployeeID, PatientID, Username, PasswordHash, UserRole) VALUES (?, ?, ?, ?, ?)";
+    const [result] = await db.execute(sql, [employeeID || null, patientID || null, username, hashedPassword, userRole]);
     return result.insertId;
 };
 
 // 2. Logic to get all user accounts
 exports.getAllUserAccounts = async () => {
-    const [rows] = await db.execute("SELECT UserID, EmployeeID, Username, UserRole AS Role FROM UserAccounts");
+    const [rows] = await db.execute("SELECT UserID, EmployeeID, PatientID, Username, PasswordHash, UserRole, UserRole AS Role FROM UserAccounts");
     return rows;
 };
 

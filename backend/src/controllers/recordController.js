@@ -1,4 +1,4 @@
-const recordService = require('../services/recordService');
+const medicalRecordService = require('../services/recordService');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 // Create new record
@@ -49,6 +49,16 @@ exports.updateRecord = async (req, res, next) => {
     if (!updated) return sendError(res, 'Record not found or not updated', 404);
 
     sendSuccess(res, 'Medical record updated successfully', { RecordID: recordId }, 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get all medical records
+exports.getAllMedicalRecords = async (req, res, next) => {
+  try {
+    const records = await medicalRecordService.getAllMedicalRecords();
+    res.json(records);
   } catch (error) {
     next(error);
   }

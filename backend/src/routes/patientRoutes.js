@@ -8,6 +8,7 @@ router.put('/insurance/:InsuranceID', patientController.updateInsurance);
 
 router.post('/', patientController.createPatient);
 router.get('/', patientController.getPatients);
+router.get('/patient', patientController.getPatients);
 router.put('/:id', patientController.updatePatient);
 router.get('/count', patientController.getPatientCount); 
 
