@@ -333,3 +333,16 @@ exports.updateStaff = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getEmployeeShifts = async (req, res, next) => {
+    try {
+        const { EmployeeID } = req.params;
+        if (!EmployeeID) {
+            return sendError(res, 'EmployeeID is required', 400);
+        }
+        const shifts = await employeeService.getEmployeeShifts(EmployeeID);
+        sendSuccess(res, 'Employee shifts retrieved successfully', shifts, 200);
+    } catch (error) {
+        next(error);
+    }
+};

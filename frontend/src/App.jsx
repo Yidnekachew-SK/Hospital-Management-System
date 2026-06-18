@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import LoginPage from './login/loginPage'; 
-import AdminDashboard from './adminPage/AdminDashboard';
-import PatientPage from './PatientPage/PatientPage';
+import RoleRouter from './login/RoleRouter';
 
 function App() {
   // This state stores the 'user' object once they log in
@@ -12,13 +11,8 @@ function App() {
     return <LoginPage onLoginSuccess={(userData) => setUser(userData)} />;
   }
 
-  // If the user has a role of 'admin', show YOUR dashboard
-  if (user.role === 'admin') {
-    return <AdminDashboard />;
-  }
-
-  // For any other role, show the Patient Page
-  return <PatientPage />;
+  // Delegate all routing to RoleRouter
+  return <RoleRouter currentUser={user} onLogout={() => setUser(null)} />;
 }
 
 export default App;

@@ -239,3 +239,10 @@ exports.updateStaff = async (employeeID, staffRole) => {
     const [result] = await db.execute(sql, [staffRole, employeeID]);
     return result.affectedRows > 0;
 };
+
+// 23. Logic to query shift schedules for an employee
+exports.getEmployeeShifts = async (employeeID) => {
+    const sql = "SELECT * FROM ShiftSchedules WHERE EmployeeID = ?";
+    const [rows] = await db.execute(sql, [employeeID]);
+    return rows;
+};

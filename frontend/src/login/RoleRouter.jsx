@@ -2,7 +2,7 @@ import React from 'react';
 import AdminDashboard from "../adminPage/AdminDashboard.jsx";
 import PatientPage from "../PatientPage/PatientPage.jsx";
 import DoctorPage from "../doctorPage/DoctorPage.jsx";
-import NurseDashboard from "../dashboard/NurseDashboard.jsx";
+import NurseDashboard from "../nursePage/NurseDashboard.jsx";
 
 export default function RoleRouter({ currentUser, onLogout }) {
   if (!currentUser) return null;

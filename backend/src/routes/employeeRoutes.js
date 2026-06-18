@@ -31,6 +31,8 @@ router.put('/doctors/:EmployeeID', employeeController.updateDoctor);
 router.put('/nurses/:EmployeeID', employeeController.updateNurse);
 router.put('/staff/:EmployeeID', employeeController.updateStaff);
 
+router.get('/shifts/:EmployeeID', employeeController.getEmployeeShifts);
+
 router.get('/counts/system', employeeController.getSystemCounts);
 
 module.exports = router;
