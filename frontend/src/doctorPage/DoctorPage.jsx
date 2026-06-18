@@ -27,6 +27,8 @@ export default function DoctorPage({ username, onLogout }) {
     labTests,
     surgeries,
     labReports,
+    rooms,
+    medications,
     
     // Filtered data layers
     filteredPatients,
@@ -62,6 +64,8 @@ export default function DoctorPage({ username, onLogout }) {
     setShowUpdateRecordModal,
     showUpdateSurgeryModal,
     setShowUpdateSurgeryModal,
+    showUpdateAppointmentModal,
+    setShowUpdateAppointmentModal,
     
     // Form models
     newApptForm,
@@ -78,6 +82,9 @@ export default function DoctorPage({ username, onLogout }) {
     setEditRecordForm,
     editSurgeryForm,
     setEditSurgeryForm,
+    editAppointmentForm,
+    setEditAppointmentForm,
+
     
     // Form event submissions
     handleAddAppointment,
@@ -87,13 +94,16 @@ export default function DoctorPage({ username, onLogout }) {
     handleAddLabReportSubmit,
     handleUpdateRecordSubmit,
     handleUpdateSurgerySubmit,
+    handleUpdateAppointmentSubmit,
+
+    activeDoctor,
     
     // Prescription table actions
     addRxItemRow,
     updateRxItemRow,
     removeRxItemRow
   } = useDoctorData(username);
-
+  
   return (
     <div id="doctor-workspace" className="flex h-screen w-full bg-[#F8FAFC] font-sans overflow-hidden text-[#1E293B]">
       
@@ -134,6 +144,7 @@ export default function DoctorPage({ username, onLogout }) {
             {activeTab === "patients" && (
               <button
                  onClick={() => {
+                  const firstPatId = (patients && patients.length > 0) ? patients[0].PatientID : "1";
                    setNewRxForm({ patientId: "PAT-001", items: [{ medicationId: "MED-01", dosage: "10mg", duration: "30 Days", frequency: "Once Daily" }] });
                    setShowPrescriptionModal(true);
                  }}
@@ -200,6 +211,9 @@ export default function DoctorPage({ username, onLogout }) {
                 selectedDateAppointments={selectedDateAppointments}
                 setShowAppointmentModal={setShowAppointmentModal}
                 setNewApptForm={setNewApptForm}
+                setEditAppointmentForm={setEditAppointmentForm}
+                setShowUpdateAppointmentModal={setShowUpdateAppointmentModal}
+                activeDoctor={activeDoctor}
               />
             )}
 
@@ -276,6 +290,14 @@ export default function DoctorPage({ username, onLogout }) {
         editSurgeryForm={editSurgeryForm}
         setEditSurgeryForm={setEditSurgeryForm}
         handleUpdateSurgerySubmit={handleUpdateSurgerySubmit}
+        handleUpdateAppointmentSubmit={handleUpdateAppointmentSubmit}
+        editAppointmentForm={editAppointmentForm}
+        setEditAppointmentForm={setEditAppointmentForm}
+        showUpdateAppointmentModal={showUpdateAppointmentModal}
+        setShowUpdateAppointmentModal={setShowUpdateAppointmentModal}
+        rooms={rooms}
+        medications={medications}
+        activeDoctor={activeDoctor}
       />
 
     </div>

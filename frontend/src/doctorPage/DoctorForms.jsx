@@ -21,6 +21,11 @@ export default function DoctorForms({
   newApptForm,
   setNewApptForm,
   handleAddAppointment,
+  showUpdateAppointmentModal,
+  setShowUpdateAppointmentModal,
+  editAppointmentForm,
+  setEditAppointmentForm,
+  handleUpdateAppointmentSubmit,
 
   // Prescription modal props
   showPrescriptionModal,
@@ -697,6 +702,88 @@ export default function DoctorForms({
                   className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-lg border border-teal-700 text-center shadow-sm cursor-pointer"
                 >
                   Save Surgery Updates
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    
+    {/* MODAL 8: UPDATE APPOINTMENT FORM */}
+      {showUpdateAppointmentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 modal-overlay px-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 modal-content space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <CalendarIcon size={16} className="text-teal-600" />
+                Update Existing Appointment
+              </h3>
+              <button onClick={() => setShowUpdateAppointmentModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateAppointmentSubmit} className="space-y-4 text-xs text-slate-700">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-500 block">Select Patient</label>
+                <select
+                  value={editAppointmentForm?.PatientID}
+                  onChange={(e) => setEditAppointmentForm({ ...editAppointmentForm, PatientID: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-800"
+                >
+                  {patients.map(p => (
+                    <option key={p.PatientID} value={p.PatientID}>{p.PatientName} ({p.PatientID})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-500 block">Date Scheduled</label>
+                  <input
+                    type="date"
+                    value={editAppointmentForm?.AppointmentDate || ""}
+                    onChange={(e) => setEditAppointmentForm({ ...editAppointmentForm, AppointmentDate: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-800"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-500 block">Time (HH:MM)</label>
+                  <input
+                    type="time"
+                    value={editAppointmentForm?.AppointmentTime || ""}
+                    onChange={(e) => setEditAppointmentForm({ ...editAppointmentForm, AppointmentTime: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-500 block">Appointment Status</label>
+                <select
+                  value={editAppointmentForm?.AppointmentStatus || "Scheduled"}
+                  onChange={(e) => setEditAppointmentForm({ ...editAppointmentForm, AppointmentStatus: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-800"
+                >
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowUpdateAppointmentModal(false)}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold py-2 rounded-lg border border-slate-200 text-center cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-lg border border-teal-700 text-center shadow-sm cursor-pointer"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

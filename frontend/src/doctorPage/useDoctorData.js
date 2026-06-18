@@ -93,6 +93,16 @@ export function useDoctorData(authenticatedUsername) {
     RoomID: ""
   });
 
+  const [showUpdateAppointmentModal, setShowUpdateAppointmentModal] = useState(false);
+  const [editAppointmentForm, setEditAppointmentForm] = useState({
+    AppointmentID: "",
+    PatientID: "",
+    EmployeeID: "",
+    AppointmentDate: "",
+    AppointmentTime: "",
+    AppointmentStatus: ""
+  });
+
   // Base loader helper
   const getArray = async (url) => {
     try {
@@ -163,15 +173,22 @@ export function useDoctorData(authenticatedUsername) {
       ]);
 
       setPatients(pats || []);
-      setAppointments(
-        (appts || []).map(a => ({
+       const normalizedAppts = (appts || []).map(a => {
+        let cleanDate = a.AppointmentDate;
+        if (cleanDate) {
+          const str = String(cleanDate).trim();
+          const match = str.match(/^(\d{4}-\d{2}-\d{2})/);
+          if (match) {
+            cleanDate = match[1];
+          }
+        }
+        return {
           ...a,
-          Status: a.Status || a.AppointmentStatus || "Scheduled",
-          AppointmentStatus: a.AppointmentStatus || a.Status || "Scheduled",
-          PatientID: a.PatientID ? String(a.PatientID) : "",
-          EmployeeID: a.EmployeeID ? String(a.EmployeeID) : ""
-        }))
-      );
+          AppointmentDate: cleanDate,
+          Status: a.Status || a.AppointmentStatus || "Scheduled"
+        };
+      });
+      setAppointments(normalizedAppts);
       setMedicalRecords(recs || []);
       setPrescriptions(rxs || []);
       setPrescriptionItems(rxItems || []);
@@ -299,28 +316,62 @@ export function useDoctorData(authenticatedUsername) {
 
   // --- ACTION SUBMISSIONS ---
   const handleAddAppointment = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch("/api/v1/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          PatientID: newApptForm.patientId,
-          EmployeeID: activeDoctor.EmployeeID,
-          AppointmentDate: newApptForm.date,
-          AppointmentTime: newApptForm.time,
-          Status: newApptForm.status,
-          AppointmentStatus: newApptForm.status
-        })
-      });
-      if (res.ok) {
-        setShowAppointmentModal(false);
-        loadAllData();
+      e.preventDefault();
+      try {
+        // Normalize patient ID to clean integer for MySQL/relational tables compatibility
+        let cleanPatientId = newApptForm.patientId;
+        if (cleanPatientId !== undefined && cleanPatientId !== null) {
+          const strVal = String(cleanPatientId).trim();
+          if (strVal.toUpperCase().startsWith("PAT-")) {
+            const num = parseInt(strVal.substring(4), 10);
+            if (!isNaN(num)) {
+              cleanPatientId = num;
+            }
+          } else {
+            const num = parseInt(strVal, 10);
+            if (!isNaN(num)) {
+              cleanPatientId = num;
+            }
+          }
+        }
+
+        // Format time to HH:MM:SS to perfectly match MySQL TIME data type
+        let formattedTime = "00:00:00";
+        if (newApptForm.time) {
+          const parts = newApptForm.time.split(":");
+          if (parts.length === 2) {
+            formattedTime = `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:00`;
+          } else if (parts.length === 3) {
+            formattedTime = `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:${parts[2].padStart(2, "0")}`;
+          } else {
+            formattedTime = newApptForm.time;
+          }
+        }
+        console.log(cleanPatientId);
+        console.log(activeDoctor.EmployeeID);
+        console.log(newApptForm.date);
+        console.log(formattedTime)
+        console.log(newApptForm.status);
+
+        const res = await fetch("/api/v1/appointments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            PatientID: cleanPatientId,
+            EmployeeID: activeDoctor.EmployeeID,
+            AppointmentDate: newApptForm.date,
+            AppointmentTime: formattedTime,
+            AppointmentStatus: newApptForm.status
+          })
+        });
+        if (res.ok) {
+          setShowAppointmentModal(false);
+          loadAllData();
+        }
+      } catch (err) {
+        console.error("Failed to add appointment:", err);
       }
-    } catch (err) {
-      console.error("Failed to add appointment:", err);
-    }
-  };
+    };
 
   const handleAddPrescriptionSubmit = async (e) => {
     e.preventDefault();
@@ -395,7 +446,8 @@ export function useDoctorData(authenticatedUsername) {
           EmployeeID: activeDoctor.EmployeeID,
           SurgeryDate: newSurgeryForm.date,
           SurgeryType: newSurgeryForm.surgeryType,
-          RoomID: newSurgeryForm.roomId
+          RoomID: newSurgeryForm.roomId,
+          Outcome: "Pending"
         })
       });
       if (res.ok) {
@@ -494,6 +546,59 @@ export function useDoctorData(authenticatedUsername) {
     }
   };
 
+  const handleUpdateAppointmentSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Normalize patient ID to clean integer for database compatibility
+      let cleanPatientId = editAppointmentForm.PatientID;
+      if (cleanPatientId !== undefined && cleanPatientId !== null) {
+        const strVal = String(cleanPatientId).trim();
+        if (strVal.toUpperCase().startsWith("PAT-")) {
+          const num = parseInt(strVal.substring(4), 10);
+          if (!isNaN(num)) {
+            cleanPatientId = num;
+          }
+        } else {
+          const num = parseInt(strVal, 10);
+          if (!isNaN(num)) {
+            cleanPatientId = num;
+          }
+        }
+      }
+
+      // Format time to HH:MM:SS to match SQL TIME type
+      let formattedTime = "00:00:00";
+      if (editAppointmentForm.AppointmentTime) {
+        const parts = editAppointmentForm.AppointmentTime.split(":");
+        if (parts.length === 2) {
+          formattedTime = `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:00`;
+        } else if (parts.length === 3) {
+          formattedTime = `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:${parts[2].padStart(2, "0")}`;
+        } else {
+          formattedTime = editAppointmentForm.AppointmentTime;
+        }
+      }
+
+      const res = await fetch(`/api/v1/appointments/${editAppointmentForm.AppointmentID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          PatientID: cleanPatientId,
+          EmployeeID: activeDoctor.EmployeeID,
+          AppointmentDate: editAppointmentForm.AppointmentDate,
+          AppointmentTime: formattedTime,
+          AppointmentStatus: editAppointmentForm.AppointmentStatus,
+        })
+      });
+      if (res.ok) {
+        setShowUpdateAppointmentModal(false);
+        loadAllData();
+      }
+    } catch (err) {
+      console.error("Failed to update appointment:", err);
+    }
+  };
+
   // --- DOCTOR ASSOCIATED ENTITIES FILTERING ---
   const doctorAppointments = useMemo(() => {
     if (!activeDoctor || !activeDoctor.EmployeeID) return [];
@@ -572,10 +677,10 @@ export function useDoctorData(authenticatedUsername) {
     if (!searchQuery) return enrichedPatients;
     const query = searchQuery.toLowerCase();
     return enrichedPatients.filter(
-      p => p.PatientName.toLowerCase().includes(query) || 
-           p.PatientID.toLowerCase().includes(query) || 
-           p.NationalID.includes(query) || 
-           p.condition.toLowerCase().includes(query)
+      p => (p.PatientName || "").toLowerCase().includes(query) || 
+           String(p.PatientID || "").toLowerCase().includes(query) || 
+           String(p.NationalID || "").toLowerCase().includes(query) || 
+           (p.condition || "").toLowerCase().includes(query)
     );
   }, [enrichedPatients, searchQuery]);
 
@@ -583,11 +688,9 @@ export function useDoctorData(authenticatedUsername) {
     if (!searchQuery) return doctorLabTests;
     const q = searchQuery.toLowerCase();
     return doctorLabTests.filter(lab => {
-      const pat = patients.find(p => String(p.PatientID) === String(lab.PatientID));
-      return String(lab.TestID).toLowerCase().includes(q) || 
-             lab.TestType.toLowerCase().includes(q) || 
-             (pat && pat.PatientName.toLowerCase().includes(q)) || 
-             String(lab.PatientID).toLowerCase().includes(q);
+      const p = patients.find(pat => pat.PatientID === lab.PatientID);
+      const pName = p ? (p.PatientName || "").toLowerCase() : "";
+      return String(lab.TestID || "").toLowerCase().includes(q) || (lab.TestType || "").toLowerCase().includes(q) || String(lab.PatientID || "").toLowerCase().includes(q) || pName.includes(q);
     });
   }, [doctorLabTests, searchQuery, patients]);
 
@@ -595,11 +698,9 @@ export function useDoctorData(authenticatedUsername) {
     if (!searchQuery) return doctorSurgeries;
     const q = searchQuery.toLowerCase();
     return doctorSurgeries.filter(s => {
-      const pat = patients.find(p => String(p.PatientID) === String(s.PatientID));
-      return String(s.SurgeryID).toLowerCase().includes(q) || 
-             s.SurgeryType.toLowerCase().includes(q) || 
-             (pat && pat.PatientName.toLowerCase().includes(q)) || 
-             String(s.PatientID).toLowerCase().includes(q);
+      const p = patients.find(pat => pat.PatientID === s.PatientID);
+      const pName = p ? (p.PatientName || "").toLowerCase() : "";
+      return String(s.SurgeryID || "").toLowerCase().includes(q) || (s.SurgeryType || "").toLowerCase().includes(q) || String(s.PatientID || "").toLowerCase().includes(q) || pName.includes(q);
     });
   }, [doctorSurgeries, searchQuery, patients]);
 
@@ -742,9 +843,14 @@ export function useDoctorData(authenticatedUsername) {
     setShowUpdateRecordModal,
     showUpdateSurgeryModal,
     setShowUpdateSurgeryModal,
+    showUpdateAppointmentModal,
+    setShowUpdateAppointmentModal,
+    rooms,
+    medications,
     
     // Submition handlers
     handleAddAppointment,
+    handleUpdateAppointmentSubmit,
     handleAddPrescriptionSubmit,
     handleRequestLabSubmit,
     handleScheduleSurgerySubmit,
@@ -771,6 +877,8 @@ export function useDoctorData(authenticatedUsername) {
     editRecordForm,
     setEditRecordForm,
     editSurgeryForm,
-    setEditSurgeryForm
+    setEditSurgeryForm,
+    editAppointmentForm,
+    setEditAppointmentForm
   };
 }

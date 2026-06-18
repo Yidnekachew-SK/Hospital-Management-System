@@ -18,7 +18,10 @@ export default function AppointmentCalendar({
   changeMonth,
   selectedDateAppointments,
   setShowAppointmentModal,
-  setNewApptForm
+  setNewApptForm,
+  setEditAppointmentForm,
+  setShowUpdateAppointmentModal,
+  activeDoctor
 }) {
   const todayDateStr = new Date().toISOString().split("T")[0];
 
@@ -112,7 +115,8 @@ export default function AppointmentCalendar({
                 ) : (
                   <button
                     onClick={() => {
-                      setNewApptForm({ patientId: "PAT-001", date: selectedCalendarDate, time: "10:30", status: "Scheduled" });
+                      const firstPatId = (patients && patients.length > 0) ? patients[0].PatientID : "1";
+                      setNewApptForm({ patientId: firstPatId, date: selectedCalendarDate, time: "10:30", status: "Scheduled" });
                       setShowAppointmentModal(true);
                     }}
                     className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 px-3 rounded-xl text-xs flex items-center gap-1.5 border border-teal-700 shadow-sm transition-all cursor-pointer"
@@ -143,7 +147,27 @@ export default function AppointmentCalendar({
                       </span>
                     </div>
                     <p className="text-xs font-bold text-slate-800">{appt.PatientName}</p>
-                    <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1"><Clock size={11} /> Appointment Hour: {appt.AppointmentTime}</p>
+                    <div className="flex justify-between items-center gap-2">
+                      <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                        <Clock size={11} /> Appointment Hour: {appt.AppointmentTime}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setEditAppointmentForm({
+                            AppointmentID: appt.AppointmentID,
+                            PatientID: appt.PatientID,
+                            EmployeeID: activeDoctor?.EmployeeID,
+                            AppointmentDate: appt.AppointmentDate,
+                            AppointmentTime: appt.AppointmentTime ? appt.AppointmentTime.substring(0, 5) : "10:30",
+                            AppointmentStatus: appt.AppointmentStatus || appt.Status
+                          });
+                          setShowUpdateAppointmentModal(true); 
+                        }}
+                        className="text-[10px] font-bold text-teal-600 hover:text-teal-700 hover:underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
