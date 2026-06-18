@@ -44,13 +44,26 @@ export default function LabsDirectory({
           <h2 className="font-bold text-slate-800 text-sm">Laboratories and Diagnostics Directory</h2>
           <p className="text-xs text-slate-400">Database relation links: LabTests and LabReports schemas</p>
         </div>
-        <button
-          onClick={() => setShowLabRequestModal(true)}
-          className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-3.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-teal-700 shadow-sm cursor-pointer self-start sm:self-center"
-        >
-          <Plus size={13} />
-          Submit Lab Test Order
-        </button>
+        {currentView === "tests" ? (
+          <button
+            onClick={() => setShowLabRequestModal(true)}
+            className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-3.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-teal-700 shadow-sm cursor-pointer self-start sm:self-center"
+          >
+            <Plus size={13} />
+            Submit Lab Test Order
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setNewLabReportForm({ testId: "", resultSummary: "", pathologistComments: "" });
+              setShowAddLabReportModal(true);
+            }}
+            className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-3.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-800 shadow-sm cursor-pointer self-start sm:self-center"
+          >
+            <Plus size={13} />
+            Add Lab Report
+          </button>
+        )}
       </div>
 
       {/* Choose between lab tests and lab reports segment - toggle buttons */}
@@ -118,11 +131,11 @@ export default function LabsDirectory({
                       {lab.RequestDate}
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full ${
-                        lab.Status === "Completed" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                        lab.Status === "Done" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          lab.Status === "Completed" ? "bg-emerald-400" : "bg-amber-400"
+                        <span className={`w-1.5 h-1.5 rounded-full inline-block mr-1.5 ${
+                          lab.Status === "Done" ? "bg-emerald-400" : "bg-amber-400"
                         }`} />
                         {lab.Status}
                       </span>

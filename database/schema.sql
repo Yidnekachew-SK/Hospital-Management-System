@@ -173,6 +173,7 @@ CREATE TABLE LabTests (
   EmployeeID varchar(10) NOT NULL,
   TestType varchar(100) NOT NULL,
   RequestDate date NOT NULL,
+  Status varchar(50) NOT NULL DEFAULT 'Pending',
   PRIMARY KEY (TestID),
   UNIQUE KEY Patient_Doctor_Test_Date (PatientID,EmployeeID,TestType,RequestDate),
   CONSTRAINT fk_LabTest_doctor FOREIGN KEY (EmployeeID) REFERENCES Doctors (EmployeeID),

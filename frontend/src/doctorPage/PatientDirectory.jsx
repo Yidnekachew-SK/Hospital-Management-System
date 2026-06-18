@@ -332,15 +332,6 @@ export default function PatientDirectory({
                     ) : (
                       <div className="mt-2.5 flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100">
                         <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1"><AlertCircle size={11} className="text-amber-500" /> Pending pathologist outcome.</p>
-                        <button
-                          onClick={() => {
-                            setNewLabReportForm({ testId: lab.TestID, resultSummary: "", pathologistComments: "" });
-                            setShowAddLabReportModal(true);
-                          }}
-                          className="bg-white border border-slate-200 hover:bg-slate-50 text-[10px] font-bold px-2 py-1 rounded text-slate-700 cursor-pointer"
-                        >
-                          Sign Lab Outcome
-                        </button>
                       </div>
                     )}
                   </div>

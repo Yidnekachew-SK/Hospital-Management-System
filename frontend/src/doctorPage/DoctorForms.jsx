@@ -11,6 +11,7 @@ import {
 
 export default function DoctorForms({
   patients,
+  labTests = [],
   medications = [],
   rooms = [],
   activeDoctor = null,
@@ -483,7 +484,19 @@ export default function DoctorForms({
 
             <form onSubmit={handleAddLabReportSubmit} className="space-y-4 text-xs text-slate-700">
               <div className="space-y-1">
-                <label className="font-bold text-slate-400 block">Target Lab Test Code: {newLabReportForm.testId}</label>
+                <label className="font-bold text-slate-500 block">Target Lab Test</label>
+                <select
+                  value={newLabReportForm.testId}
+                  onChange={(e) => setNewLabReportForm({ ...newLabReportForm, testId: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-800"
+                >
+                  <option value="">Select a pending lab test</option>
+                  {labTests?.filter(t => t.Status === "Pending").map(test => (
+                    <option key={test.TestID} value={test.TestID}>
+                      {test.TestType} (Test ID: {test.TestID}) - Patient: {patients?.find(p => p.PatientID === test.PatientID)?.PatientName || test.PatientID}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-1">

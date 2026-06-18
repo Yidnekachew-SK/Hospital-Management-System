@@ -250,6 +250,7 @@ export default function DoctorPage({ username, onLogout }) {
       {/* OVERLAY FORMS COORDINATOR */}
       <DoctorForms
         patients={patients}
+        labTests={labTests}
         showAppointmentModal={showAppointmentModal}
         setShowAppointmentModal={setShowAppointmentModal}
         newApptForm={newApptForm}

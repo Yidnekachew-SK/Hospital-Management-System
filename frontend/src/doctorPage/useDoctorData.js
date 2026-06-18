@@ -106,14 +106,12 @@ export function useDoctorData(authenticatedUsername) {
   // Base loader helper
   const getArray = async (url) => {
     try {
-      console.log(`[getArray] Fetching: ${url}`);
       const response = await fetch(url);
       if (!response.ok) {
         console.warn(`[getArray Warn] Fetching ${url} returned status:`, response.status);
         return [];
       }
       const json = await response.json();
-      console.log(`[getArray Success] Fetching ${url} succeeded. Raw JSON:`, json);
       
       // Highly robust array extraction logic
       const findFirstArray = (obj) => {
@@ -243,9 +241,6 @@ export function useDoctorData(authenticatedUsername) {
   // Set active doctor dynamically based on login user matching
   const activeDoctor = useMemo(() => {
     const targetUser = (authenticatedUsername || "").toLowerCase().trim();
-    console.log("[DEBUG] useDoctorData activeDoctor lookup, targetUser:", targetUser);
-    console.log("[DEBUG] employees loaded list length:", employees.length);
-    console.log("[DEBUG] employees loaded raw data:", employees);
     if (!targetUser) {
       if (employees.length > 0) {
         const fallback = {
@@ -254,7 +249,6 @@ export function useDoctorData(authenticatedUsername) {
           Specialty: employees[0].Specialty || "",
           LicenseNumber: employees[0].LicenseNumber || ""
         };
-        console.log("[DEBUG] activeDoctor targetUser empty fallback:", fallback);
         return fallback;
       }
       const loadingDoc = {
@@ -263,7 +257,6 @@ export function useDoctorData(authenticatedUsername) {
         Specialty: "",
         LicenseNumber: ""
       };
-      console.log("[DEBUG] activeDoctor targetUser empty loading:", loadingDoc);
       return loadingDoc;
     }
 
@@ -277,8 +270,6 @@ export function useDoctorData(authenticatedUsername) {
 
       const slugEmail = emp.Email ? emp.Email.split("@")[0].toLowerCase() : "";
 
-      console.log(`[DEBUG] Comparing emp name:"${emp.EmployeeName}" slugName:"${slugName}" slugEmail:"${slugEmail}" empID:"${emp.EmployeeID}" with targetUser:"${targetUser}"`);
-
       return slugName === targetUser || slugEmail === targetUser || String(emp.EmployeeID).toLowerCase() === targetUser;
     });
 
@@ -289,7 +280,6 @@ export function useDoctorData(authenticatedUsername) {
         Specialty: found.Specialty || "",
         LicenseNumber: found.LicenseNumber || ""
       };
-      console.log("[DEBUG] activeDoctor found and resolved perfectly:", resDoc);
       return resDoc;
     }
 
@@ -300,7 +290,6 @@ export function useDoctorData(authenticatedUsername) {
         Specialty: employees[0].Specialty || "",
         LicenseNumber: employees[0].LicenseNumber || ""
       };
-      console.log("[DEBUG] activeDoctor NOT found by username, falling back:", fallback);
       return fallback;
     }
 
@@ -310,7 +299,6 @@ export function useDoctorData(authenticatedUsername) {
       Specialty: "",
       LicenseNumber: ""
     };
-    console.log("[DEBUG] activeDoctor NOT found, no employees loaded yet:", loadingDoc);
     return loadingDoc;
   }, [employees, authenticatedUsername]);
 
@@ -347,11 +335,6 @@ export function useDoctorData(authenticatedUsername) {
             formattedTime = newApptForm.time;
           }
         }
-        console.log(cleanPatientId);
-        console.log(activeDoctor.EmployeeID);
-        console.log(newApptForm.date);
-        console.log(formattedTime)
-        console.log(newApptForm.status);
 
         const res = await fetch("/api/v1/appointments", {
           method: "POST",
@@ -469,7 +452,8 @@ export function useDoctorData(authenticatedUsername) {
         body: JSON.stringify({
           TestID: newLabReportForm.testId,
           ResultSummary: newLabReportForm.resultSummary,
-          PathologistComments: newLabReportForm.pathologistComments
+          PathologistComments: newLabReportForm.pathologistComments,
+          ReportDate: new Date().toISOString().split("T")[0]
         })
       });
       if (res.ok) {
