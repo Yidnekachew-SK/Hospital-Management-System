@@ -3,8 +3,8 @@ import DoctorDashboard from "../doctorPage/DoctorPage.jsx";
 import PatientDashboard from "../PatientPage/PatientPage.jsx";
 import StaffDashboard from "../staffPage/StaffPage.jsx";
 import NurseDashboard from "../dashboard/NurseDashboard.jsx";
-import AdminDashboard from "../dashboard/AdminDashboard.jsx";
-import ErrorPage from "../dashboard/error.jsx"; // <-- Imported ErrorPage
+import AdminDashboard from "../adminPage/AdminDashboard.jsx";
+import ErrorPage from "../dashboard/error.jsx";
 
 
 export default function RoleRouter({ currentUser, onLogout }) {
