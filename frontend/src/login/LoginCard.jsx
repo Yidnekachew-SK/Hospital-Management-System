@@ -48,7 +48,7 @@ export default function LoginCard({ onLoginSuccess }) {
       console.log(`[API Request] Querying database for username: "${username}"`);
 
       // Using the exact GET verification method for username of the backend API
-      const usernameResponse = await fetch(`/api/v1/auth/verify-username/${encodeURIComponent(username.trim())}`);
+      const usernameResponse = await fetch(`http://127.0.0.1:5000/api/v1/auth/verify-username/${encodeURIComponent(username.trim())}`);
       console.log(usernameResponse);
       if (!usernameResponse.ok) {
         setStep("error");
@@ -65,7 +65,7 @@ export default function LoginCard({ onLoginSuccess }) {
       console.log(`[API Request] Initiating password match call asynchronously...`);
 
       // Using the get password method of the backend API to verify the password is matched
-      const passwordQueryUrl = `/api/v1/auth/verify-password?username=${encodeURIComponent(username.trim())}&password=${encodeURIComponent(password)}`;
+      const passwordQueryUrl = `http://127.0.0.1:5000/api/v1/auth/verify-password?username=${encodeURIComponent(username.trim())}&password=${encodeURIComponent(password)}`;
       const passwordResponse = await fetch(passwordQueryUrl);
 
       if (!passwordResponse.ok) {
@@ -93,6 +93,7 @@ export default function LoginCard({ onLoginSuccess }) {
         
         // Brief pleasant delay to show completion animation
         setTimeout(() => {
+          localStorage.setItem('token', passwordData.data.token);
           onLoginSuccess({
             username: username.trim(),
             loginTime: new Date().toLocaleTimeString(),

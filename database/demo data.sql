@@ -16,9 +16,9 @@ INSERT INTO Wards (WardName, DeptID, Capacity) VALUES
 -- 3. Rooms
 -- Rooms (6 total, occupancy matches Admissions)
 INSERT INTO Rooms (WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy) VALUES
-(1,'C101','ICU',2,1), (2,'C201','General',3,1),
-(3,'N101','General',3,1), (4,'N201','General',3,1),
-(5,'P101','General',3,1), (6,'P201','General',3,1);
+(1,'C101','ICU',2,'OCCUPIED'), (2,'C201','General',3,'OCCUPIED'),
+(3,'N101','General',3,'OCCUPIED'), (4,'N201','General',3,'OCCUPIED'),
+(5,'P101','General',3,'OCCUPIED'), (6,'P201','General',3,'OCCUPIED');
 
 
 -- 4. Employees (Doctors, Nurses, Staff)
@@ -191,6 +191,7 @@ INSERT INTO Visitors (PatientID, VisitorName, RelationToPatient, VisitDate) VALU
 (3,'Sara','Friend','2026-05-23');
 
 -- UserAccounts
+<<<<<<< Updated upstream
 INSERT INTO UserAccounts (EmployeeID, PatientID, Username, PasswordHash, UserRole) VALUES
 ('E001',NULL,'johnsmith','$2b$10$E0qhfStFVhD2.7NK1PU/XuWMccTz8NUYDoHlmlI1ArMVBEQMzM1be','Doctor'),
 ('E002',NULL,'sarahlee','$2b$10$1eVPmNI8rssSjAd.mfKbVu.cgXqSpaWw4OyMmqpcQRQ0u4bmlCPJK','Doctor'),
@@ -200,6 +201,15 @@ INSERT INTO UserAccounts (EmployeeID, PatientID, Username, PasswordHash, UserRol
 ('E009',NULL,'ruth','$2b$10$ZqTde2ZmTecAtcxN9X0E0OFW0.SaTmVkYfauBbXs5m2veCU3BjVHe','Staff'),
 (NULL, 1, 'alice', '$2b$10$4fVYGBGlI3Mdgu9akcR4WuZk5bst6IItCi6wS9R7oYxXTsDwi5zxy', 'patient'),
 (NULL, 3, 'charlie', '$2b$10$HxEiiy3mtWOtUgAp72ku7.RlRJFOvwlYT6J7erMH3uGP0TEDpM7Su', 'patient');
+=======
+INSERT INTO UserAccounts (EmployeeID, Username, PasswordHash, UserRole) VALUES
+('E001','johnsmith','$2b$10$E0qhfStFVhD2.7NK1PU/XuWMccTz8NUYDoHlmlI1ArMVBEQMzM1be','Doctor'),
+('E002','sarahlee','$2b$10$1eVPmNI8rssSjAd.mfKbVu.cgXqSpaWw4OyMmqpcQRQ0u4bmlCPJK','Doctor'),
+('E005','helen','$2b$10$58rSt.gW0O6jXHbhjnJo..SYHU/L9Gkh958ZC.KE7aBN5V5VPUWki','Nurse'),
+('E006','daniel','$2b$10$xXObWyUZlRkhaEnKDNODYeVOwqsIhjmCtAcjmzMwa9lwPOtSjQIgm','Nurse'),
+('E008','michael','$2b$10$att905d.M.DwoGNJgW3DoOuyZZc2wWg0i9ww263rFVbRjOZaQ3cQ2','Staff'),
+('E009','ruth','$2b$10$ZqTde2ZmTecAtcxN9X0E0OFW0.SaTmVkYfauBbXs5m2veCU3BjVHe','Admin');
+>>>>>>> Stashed changes
 
 -- Logs
 INSERT INTO logs (TableName, RecordID, ActionType, ActionDate, UserID, Description) VALUES

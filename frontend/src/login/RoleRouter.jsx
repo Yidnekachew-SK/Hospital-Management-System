@@ -6,10 +6,7 @@ import NurseDashboard from "../dashboard/NurseDashboard.jsx";
 import AdminDashboard from "../dashboard/AdminDashboard.jsx";
 import ErrorPage from "../dashboard/error.jsx"; // <-- Imported ErrorPage
 
-/**
- * RoleRouter component inspects the current user's authenticated role 
- * and guides them to their corresponding dashboard page. 
- */
+
 export default function RoleRouter({ currentUser, onLogout }) {
   if (!currentUser) return null;
 
@@ -17,9 +14,9 @@ export default function RoleRouter({ currentUser, onLogout }) {
 
   switch (role) {
     case "admin":
-      return <AdminDashboard username={currentUser.username} onLogout={onLogout} />;
+      return <AdminDashboard onLogout={onLogout} />;
     case "doctor":
-      return <DoctorDashboard username={currentUser.username} onLogout={onLogout} />;
+      return <DoctorPage username={username} onLogout={onLogout} />;
     case "nurse":
       return <NurseDashboard username={currentUser.username} onLogout={onLogout} />;
     case "patient":
