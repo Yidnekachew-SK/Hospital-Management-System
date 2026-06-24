@@ -14,7 +14,6 @@ INSERT INTO Wards (WardName, DeptID, Capacity) VALUES
 ('Ortho Ward 1',4,22),('Ortho Ward 2',4,24);
 
 -- 3. Rooms
--- Rooms (6 total, occupancy matches Admissions)
 INSERT INTO Rooms (WardID, RoomNumber, RoomType, MaxCapacity, CurrentOccupancy) VALUES
 (1,'C101','ICU',2,'OCCUPIED'), (2,'C201','General',3,'OCCUPIED'),
 (3,'N101','General',3,'OCCUPIED'), (4,'N201','General',3,'OCCUPIED'),

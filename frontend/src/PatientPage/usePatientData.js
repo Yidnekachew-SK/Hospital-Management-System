@@ -68,7 +68,7 @@ export function usePatientData(authenticatedUsername) {
         getArray("/api/v1/diagnostics/surgeries"),
         getArray("/api/v1/finance/bills"),
         getArray("/api/v1/finance/payments"),
-        getArray("/api/v1/patients/insurances"),
+        getArray("/api/v1/patients/insurance"),
         getArray("/api/v1/clinic/rooms"),
         getArray("/api/v1/pharmacy/medications")
       ]);

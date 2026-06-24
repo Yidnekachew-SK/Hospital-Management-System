@@ -193,7 +193,7 @@ export default function AdmissionManager({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-600">
-              {admissions.map((adm) => {
+              {admissions.find((adm) => {
                 const pObj = patients.find(p => p.PatientID === adm.PatientID);
                 return (
                   <tr key={adm.AdmissionID} className="hover:bg-slate-50/50 transition-colors">

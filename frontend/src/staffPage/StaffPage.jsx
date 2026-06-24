@@ -45,7 +45,7 @@ export default function StaffPage({ username, onLogout }) {
         getArray("/api/v1/clinic/rooms"),
         getArray("/api/v1/employees/doctors/all/detailed"),
         getArray("/api/v1/appointments/admissions"),
-        getArray("/api/v1/support/emergency-cases"),
+        getArray("/api/v1/support/emergencies"),
         getArray("/api/v1/support/visitors"),
         getArray("/api/v1/finance/bills"),
         getArray("/api/v1/finance/payments")
@@ -70,7 +70,6 @@ export default function StaffPage({ username, onLogout }) {
     loadAllStaffData();
   }, []);
 
-  // --- API OPERATIONS ---
 
   // ADMISSIONS
   const handleAddAdmission = async (formData) => {

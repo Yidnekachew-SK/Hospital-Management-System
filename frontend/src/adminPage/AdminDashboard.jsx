@@ -55,7 +55,7 @@ const AdminDashboard = () => {
     }
 
     const schema = {
-      'UserAccounts': { cols: ['UserID', 'EmployeeID', 'Username', 'UserRole'], fields: ['EmployeeID', 'Username', 'PasswordHash', 'UserRole'] },
+      'UserAccounts': { cols: ['UserID', 'PatientID', 'EmployeeID', 'Username', 'UserRole'], fields: ['PatientID', 'EmployeeID', 'Username', 'PasswordHash', 'UserRole'] },
       'Departments': { cols: ['DeptID', 'DeptName', 'Building'], fields: ['DeptName', 'Building'] },
       'Wards': { cols: ['WardID', 'WardName', 'DeptID', 'Capacity'], fields: ['WardName', 'DeptID', 'Capacity'] },
       'Rooms': { cols: ['RoomID', 'WardID', 'RoomNumber', 'RoomType', 'MaxCapacity', 'CurrentOccupancy'], fields: ['WardID', 'RoomNumber', 'RoomType', 'MaxCapacity', 'CurrentOccupancy'] },

@@ -20,17 +20,17 @@ export default function BillsPaymentsTab({ bills }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-1">
           <span className="text-[10px] text-slate-400 font-extrabold block uppercase tracking-wider">Accumulated Care Charges</span>
-          <p className="text-xl font-black text-slate-800">{totals.total.toLocaleString()} ETB</p>
+          <p className="text-xl font-black text-slate-800">{parseInt(totals.total)} ETB</p>
           <span className="text-[10px] text-slate-400 block font-semibold">Gross medical dues generated</span>
         </div>
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-1">
           <span className="text-[10px] text-slate-450 font-extrabold block uppercase tracking-wider text-emerald-600">Settled Payments</span>
-          <p className="text-xl font-black text-emerald-750">{totals.paid.toLocaleString()} ETB</p>
+          <p className="text-xl font-black text-emerald-750">{parseInt(totals.paid)} ETB</p>
           <span className="text-[10px] text-emerald-500 block font-bold">Successfully cleared & closed</span>
         </div>
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-1">
           <span className="text-[10px] text-slate-400 font-extrabold block uppercase tracking-wider text-rose-600">Awaiting Settlement</span>
-          <p className="text-xl font-black text-rose-700">{totals.outstanding.toLocaleString()} ETB</p>
+          <p className="text-xl font-black text-rose-700">{parseInt(totals.outstanding)} ETB</p>
           <span className="text-[10px] text-rose-500 block font-bold">Outstanding balance invoice due</span>
         </div>
       </div>

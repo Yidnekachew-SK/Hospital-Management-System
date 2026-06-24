@@ -14,9 +14,9 @@ export default function RoleRouter({ currentUser, onLogout }) {
 
   switch (role) {
     case "admin":
-      return <AdminDashboard onLogout={onLogout} />;
+      return <AdminDashboard username={currentUser.username} onLogout={onLogout} />;
     case "doctor":
-      return <DoctorPage username={username} onLogout={onLogout} />;
+      return <DoctorDashboard username={currentUser.username} onLogout={onLogout} />;
     case "nurse":
       return <NurseDashboard username={currentUser.username} onLogout={onLogout} />;
     case "patient":
@@ -24,7 +24,6 @@ export default function RoleRouter({ currentUser, onLogout }) {
     case "staff":
       return <StaffDashboard username={currentUser.username} onLogout={onLogout} />;
     default:
-      // Render the ErrorPage when no authorized role is found
       return (
         <ErrorPage 
           message="Authentication clearance error. Your user account does not possess a recognized administrative or clinical clearance role." 

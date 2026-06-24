@@ -67,12 +67,10 @@ exports.verifyUsername = async (req, res, next) => {
         }
 
         const user = await authService.findUserByUsername(username);
-        console.log("Verifying username:", username);
         if (!user) {
             return sendError(res, 'Username not found', 404);
         }
 
-        console.log(user)
         sendSuccess(res, 'Username verified', { username: user.Username, UserID: user.UserID }, 200);
 
     } catch (error) {
@@ -90,8 +88,6 @@ exports.verifyPassword = async (req, res, next) => {
         }
 
         const user = await authService.findUserByUsername(username);
-        console.log('user debuging ---------')
-        console.log(user);
         if (!user) {
             return sendError(res, 'Username not found', 404);
         }
